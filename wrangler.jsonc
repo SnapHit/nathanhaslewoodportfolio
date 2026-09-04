@@ -1,0 +1,14 @@
+{
+  // nathanhaslewood.com.au — static assets only, no Worker script.
+  // Deliberately no "main" and no assets binding: a binding without a Worker script
+  // makes the build fail silently rather than erroring.
+  "name": "nathanhaslewood-portfolio",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./",
+    // serves /work/ from /work/index.html and keeps the trailing-slash URLs intact
+    "html_handling": "auto-trailing-slash",
+    // uses the existing 404.html rather than a Cloudflare default
+    "not_found_handling": "404-page"
+  }
+}
