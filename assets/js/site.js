@@ -147,8 +147,10 @@ document.documentElement.classList.add("js");
     });
   }
 
-  /* ---------- site-wide reader pill (every page without the hero frame) ---------- */
-  if (!frame) {
+  /* ---------- site-wide reader pill (every page without the hero frame) ----------
+     A page can opt out with data-no-reader-pill on <body>. /games/ does, because the pill
+     sits bottom right and collides with the More link the hero gate reveals in that corner. */
+  if (!frame && !document.body.hasAttribute("data-no-reader-pill")) {
     var pill = document.createElement("button");
     pill.className = "reader-pill";
     pill.setAttribute("aria-haspopup", "dialog");

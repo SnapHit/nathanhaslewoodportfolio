@@ -1,4 +1,4 @@
-# nathanhaslewood.com.au · v1.17.0
+# nathanhaslewood.com.au · v1.17.1
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
@@ -171,3 +171,9 @@ No email address anywhere by design. All contact routes to LinkedIn.
 - Deliberately not a scroll lock. The gate is the full-height hero plus a withheld affordance, the same as the source site. A hard scroll lock would be hostile and inaccessible.
 - Three escape hatches so nobody is trapped: a keyboard-reachable skip link visible on focus, automatic reveal on first Tab press, and a 45 second timeout that reveals the link if the game fails to load or never signals. The markup also ships unlocked and JavaScript adds the lock, so with JS disabled the visitor gets a working link rather than a dead end.
 - The hero frame parks itself (src removed) when scrolled out of view and restores on return, so the game is not running under the rest of the page.
+
+## v1.17.1
+- Machine reader pill suppressed on /games/ only. The pill is fixed to the bottom right, which is where the hero gate reveals the More link, so on that one page the two sat on top of each other and the More link was hard to hit on a phone.
+- Done as an opt out rather than a special case in the script: site.js now builds the pill only when the body has no data-no-reader-pill attribute, and /games/ is the only page carrying it. The overlay code is untouched, so any page can opt back in by dropping the attribute.
+- Verified in Chromium at 390px and 1280px: pill absent on /games/, present on all ten other pages that carry it, and still absent on the home page, which has never had it because the reader frame is inline there. No console errors on any page.
+- Not shipped in this version: the port of the real snap-hit.online cabinets into the rack. This session's network egress blocks snap-hit.online, so the source markup, CSS and JS could not be read. The old .cab and .rack cabinets are still in place and unchanged. Porting them from memory would have produced a lookalike, not the identical component that was asked for.
