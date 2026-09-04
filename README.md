@@ -1,4 +1,4 @@
-# nathanhaslewood.com.au · v1.16.2
+# nathanhaslewood.com.au · v1.17.0
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
@@ -164,3 +164,10 @@ No email address anywhere by design. All contact routes to LinkedIn.
 
 ## v1.16.2
 - /games/ closing paragraph corrected. It read "finished when you tap it", which said the opposite of what happens: a tap starts a game, it does not end it. Now reads "Every one starts the moment you tap it", with the no store, no download, no account line extended to "nothing to uninstall afterwards". Links to snap-hit.online and novlr unchanged. Text only, no CSS or JS touched.
+
+## v1.17.0
+- /games/ hero rebuilt to match snap-hit.online. The SnapHit demo is no longer inside a cabinet and no longer needs a tap to start: it loads on arrival and fills the viewport under the nav (100dvh minus header height). The page heading, studio counters and the three cabinets now sit below it.
+- The way onward is gated. The game is framed from snap-hit.online and posts { snaphit: 'cleared' } to the parent with a wildcard target origin when a run is cleared, so the signal crosses origins. hero-game.js listens for it and reveals the More link. Cleared state is stored in localStorage, so a returning visitor is never gated twice. Verified: the More link goes from opacity 0 with pointer-events none to fully interactive on the cleared message, persists across reload, and a message forged from another origin is rejected.
+- Deliberately not a scroll lock. The gate is the full-height hero plus a withheld affordance, the same as the source site. A hard scroll lock would be hostile and inaccessible.
+- Three escape hatches so nobody is trapped: a keyboard-reachable skip link visible on focus, automatic reveal on first Tab press, and a 45 second timeout that reveals the link if the game fails to load or never signals. The markup also ships unlocked and JavaScript adds the lock, so with JS disabled the visitor gets a working link rather than a dead end.
+- The hero frame parks itself (src removed) when scrolled out of view and restores on return, so the game is not running under the rest of the page.
