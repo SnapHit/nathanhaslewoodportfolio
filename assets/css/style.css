@@ -600,37 +600,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   .sim-text{font-size:1.12rem}
 }
 
-/* ---------- v1.16: arcade cabinets ---------- */
-.rack{display:grid;grid-template-columns:1fr;gap:1.6rem}
-@media (min-width:820px){.rack{grid-template-columns:repeat(3,1fr);gap:1.4rem}}
-
-.cab{background:linear-gradient(180deg,#16131c,#0b0910);border:1px solid #262130;border-radius:16px;
-  padding:.7rem .7rem .8rem;box-shadow:0 18px 40px -28px rgba(0,0,0,.85);overflow:clip}
-.cab-marquee{display:flex;align-items:center;justify-content:center;gap:.32em;
-  font-family:var(--mono);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
-  color:#EFEBE2;padding:.6rem .4rem .65rem;
-  background:linear-gradient(180deg,rgba(59,107,255,.22),rgba(0,0,0,0));
-  border-radius:10px 10px 4px 4px;border-bottom:1px solid #2b2536}
-.cab-marquee i{color:var(--signal-b);font-style:normal}
-.cab-screen{position:relative;aspect-ratio:3/4;background:#04070e;border-radius:6px;margin:.55rem 0;
-  overflow:clip;border:1px solid #221d2c}
-.cab-frame{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#04070e}
-.cab-start{position:absolute;inset:0;width:100%;height:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:.9rem;cursor:pointer;border:0;z-index:2;
-  background:radial-gradient(120% 90% at 50% 40%,#141020 0%,#04070e 70%);color:#EFEBE2}
-.cab-coin{width:44px;height:44px;border-radius:50%;border:2px solid var(--index-b);position:relative;
-  box-shadow:0 0 0 6px rgba(59,107,255,.12);transition:transform .25s cubic-bezier(.2,.7,.3,1)}
-.cab-coin::after{content:"";position:absolute;inset:9px;border-radius:50%;border:2px solid var(--signal-b)}
-.cab-start:hover .cab-coin{transform:translateY(-3px) scale(1.06)}
-.cab-start[hidden]{display:none}
-.cab-press{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#B9B2C7}
-.cab-start:hover .cab-press{color:#EFEBE2}
-.cab-deck{display:flex;align-items:baseline;justify-content:space-between;gap:.8rem;padding:.15rem .25rem 0}
-.cab-name{font-weight:600;font-size:.98rem;color:#EFEBE2}
-.cab-link{font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;color:#9C96AA;text-decoration:none;border-bottom:1px solid transparent}
-.cab-link:hover{color:#EFEBE2;border-bottom-color:var(--index-b)}
-.cab.is-playing .cab-marquee{background:linear-gradient(180deg,rgba(31,184,120,.24),rgba(0,0,0,0))}
-
+/* ---------- studio counters ---------- */
 .studio-stats{display:grid;grid-template-columns:1fr;gap:0;margin:0;border-top:1px solid var(--line)}
 .studio-stats > div{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
   padding:.62rem 0;border-bottom:1px solid var(--line)}
@@ -642,7 +612,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   .studio-stats > div{flex-direction:column;align-items:flex-start;gap:.3rem;border-bottom:0;border-top:2px solid var(--line);padding-top:.7rem}
   .studio-stats dd{font-size:1.5rem}
 }
-@media (prefers-reduced-motion:reduce){.cab-coin,.cab-start:hover .cab-coin{transition:none;transform:none}}
 
 /* ---------- v1.17: full-viewport hero game ---------- */
 /* The game loads on arrival and fills the screen under the nav. The way onward is
@@ -677,6 +646,341 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   background:var(--paper);color:var(--ink);text-decoration:none;border:1px solid var(--ink);
   transition:transform .2s ease}
 .hero-skip:focus{transform:translate(-50%,0)}
+
+/* ---------- v1.18: SnapHit cabinets, ported from snap-hit.online ---------- */
+/* Ported from the studio site so the portfolio and the studio show the same machine.
+   Every class carries the sh- prefix. This stylesheet already had its own .cab and
+   .rack, and uses .bar, .screen, .deck and .panel elsewhere, so an unprefixed port
+   would have collided with live rules on other pages.
+
+   The phone drives every measurement. Narrow shoulders, so the screen is the object
+   and the cabinet is the frame around it, not the other way round. On narrow screens
+   the width decides, on wide ones the height does. */
+:root{
+  --sh-amber:#ff9424; --sh-amber-lit:#ffd9a2;
+  --sh-ink:#cfe2f5; --sh-ink-dim:#7e93ab;
+  --sh-cabx:1.44;                     /* cabinet width, in phone widths */
+  --sh-apx:1.18;                      /* aperture width, likewise */
+  --sh-pw:min(calc((100vw - 26px) / 1.44), 300px);
+  --sh-ph:calc(var(--sh-pw) / 0.4615);
+}
+@media (min-width:720px){
+  :root{ --sh-cabx:1.62; --sh-apx:1.30; --sh-pw:min(26.5vh, 330px); }
+}
+@media (min-width:720px) and (min-height:1000px){
+  :root{ --sh-pw:min(26vh, 380px); }
+}
+
+.sh-rack{display:flex;flex-direction:column;align-items:center}
+
+/* A long empty descent between machines, with a signal running down it. */
+.sh-thread{
+  position:absolute;left:50%;top:6%;bottom:6%;width:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,transparent,rgba(55,208,245,.5) 24%,
+                             rgba(255,148,36,.5) 76%,transparent);
+}
+.sh-thread::after{
+  content:"";position:absolute;left:50%;top:0;width:7px;height:7px;margin-left:-3.5px;
+  border-radius:50%;background:#ffe6c2;
+  box-shadow:0 0 10px 3px rgba(255,148,36,.6),0 0 22px 6px rgba(255,148,36,.25);
+  will-change:transform;
+  animation:sh-drop 3.6s cubic-bezier(.42,0,.58,1) infinite;
+}
+@keyframes sh-drop{
+  0%{transform:translateY(0);opacity:0} 10%{opacity:1}
+  86%{opacity:1} 100%{transform:translateY(var(--sh-run,300px));opacity:0}
+}
+.sh-gap{position:relative;height:clamp(190px,28vh,320px);width:100%}
+.sh-gap .sh-thread{--sh-run:clamp(167px,24vh,282px)}
+
+/* ---------- cabinet ---------- */
+.sh-cab{width:calc(var(--sh-pw) * var(--sh-cabx));max-width:100%}
+.sh-cab-body{
+  position:relative;padding:0 0 calc(var(--sh-ph) * .022);
+  border-radius:calc(var(--sh-pw) * .1) calc(var(--sh-pw) * .1) calc(var(--sh-pw) * .03) calc(var(--sh-pw) * .03);
+  background:linear-gradient(180deg,#2a5b8c 0%,#1d4370 38%,#122c4d 74%,#0b1e38 100%);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(55,208,245,.55),
+    inset 0 1px 0 rgba(180,232,255,.35),
+    0 0 0 2px rgba(255,148,36,.85),
+    0 0 34px -4px rgba(255,148,36,.45),
+    0 0 78px -18px rgba(55,208,245,.6),
+    0 40px 80px -30px rgba(0,0,0,.95);
+  overflow:hidden;
+}
+/* side art: cabinet stripes, the way a real machine is decalled */
+.sh-cab-body::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,
+      transparent 0 3.5%, rgba(255,148,36,.85) 3.5% 5.4%,
+      transparent 5.4% 7%, rgba(55,208,245,.7) 7% 8.4%,
+      transparent 8.4% 91.6%, rgba(55,208,245,.7) 91.6% 93%,
+      transparent 93% 94.6%, rgba(255,148,36,.85) 94.6% 96.5%,
+      transparent 96.5% 100%);
+}
+/* Both front edges catch the light, and a broad gloss rakes across the
+   left face. This is what stops it reading as a flat rectangle. */
+.sh-cab-body::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,
+      rgba(255,255,255,.34) 0 .8%,
+      rgba(214,240,255,.13) .8% 2.4%,
+      rgba(255,255,255,0) 2.4% 96.8%,
+      rgba(214,240,255,.10) 96.8% 99.1%,
+      rgba(255,255,255,.26) 99.1% 100%),
+    linear-gradient(104deg,
+      rgba(198,238,255,.19) 0 6%,
+      rgba(198,238,255,.07) 13%,
+      rgba(198,238,255,0) 30%,
+      rgba(198,238,255,0) 84%,
+      rgba(198,238,255,.05) 100%),
+    linear-gradient(180deg, rgba(255,255,255,.10) 0 1.5%, transparent 6%);
+}
+.sh-marquee{
+  position:relative;margin:calc(var(--sh-pw) * .045) calc(var(--sh-pw) * .07) 0;
+  padding:calc(var(--sh-pw) * .040) 0;border-radius:calc(var(--sh-pw) * .045);
+  text-align:center;
+  background:linear-gradient(180deg,#1b1006 0%,#2a1708 55%,#150c04 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,148,36,.5),0 0 26px -6px rgba(255,148,36,.55);
+  padding-left:calc(var(--sh-pw) * .04);padding-right:calc(var(--sh-pw) * .04);
+}
+.sh-marquee::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(120% 180% at 50% 50%,rgba(255,190,110,.55),rgba(255,148,36,.12) 70%,transparent);
+  mix-blend-mode:screen;will-change:opacity;
+  animation:sh-mq 4.4s ease-in-out infinite;
+}
+@keyframes sh-mq{
+  0%{opacity:.10} 38%{opacity:.62} 44%{opacity:0} 47%{opacity:.85}
+  51%{opacity:.06} 55%{opacity:.7} 72%{opacity:.34} 100%{opacity:.10}
+}
+/* The name is the sign AND the way out to the real game. It has to read as lit
+   tube, not as a hyperlink: no underline, no link colour. Sized from the phone
+   like everything else and held on one line. */
+.sh-marq{
+  position:relative;z-index:1;display:block;text-decoration:none;
+  font:900 calc(var(--sh-pw) * .10)/1 "Arial Black",Impact,system-ui,sans-serif;
+  letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+  color:#ffe9c9;
+  text-shadow:0 0 5px rgba(255,148,36,.9),0 0 16px rgba(255,148,36,.5);
+  transition:color .18s ease,text-shadow .18s ease;
+}
+.sh-marq:hover,.sh-marq:focus-visible{
+  color:#fff;
+  text-shadow:0 0 7px rgba(255,214,150,1),0 0 22px rgba(255,148,36,.75);
+}
+.sh-marq:focus-visible{outline:2px solid var(--sh-amber);outline-offset:6px}
+.sh-aperture{
+  position:relative;margin:calc(var(--sh-pw) * .045) auto 0;width:calc(var(--sh-pw) * var(--sh-apx));
+  max-width:calc(100% - var(--sh-pw) * .14);
+  padding:calc(var(--sh-pw) * .09) 0;border-radius:calc(var(--sh-pw) * .05);
+  background:#01040a;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,.95),
+    inset 0 12px 34px rgba(0,0,0,.9),
+    0 0 0 1.5px rgba(255,148,36,.7),
+    0 0 20px -4px rgba(255,148,36,.4);
+  display:flex;justify-content:center;
+}
+/* A brushed metal rail, a glass front, an island, side keys. The point of the
+   whole block rests on this reading as a phone at a glance. */
+.sh-phone{
+  position:relative;width:var(--sh-pw);height:var(--sh-ph);
+  border-radius:calc(var(--sh-pw) * .135);
+  padding:calc(var(--sh-pw) * .022);
+  background:linear-gradient(148deg,#8ea2b8 0%,#46525f 16%,#222a34 40%,
+                             #1a212a 62%,#3d4854 84%,#7d8fa3 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    0 0 0 1px rgba(4,8,14,.9),
+    0 0 40px -8px rgba(55,208,245,.5),
+    0 14px 30px -12px rgba(0,0,0,.9);
+}
+/* side keys, standing slightly proud of the rail */
+.sh-key{
+  position:absolute;z-index:2;border-radius:calc(var(--sh-pw) * .012);
+  background:linear-gradient(90deg,#7f92a6,#39424e 55%,#232a33);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.55);
+}
+.sh-key.sh-vol{left:calc(var(--sh-pw) * -.014);width:calc(var(--sh-pw) * .017)}
+.sh-key.sh-v1{top:22%;height:7.5%}
+.sh-key.sh-v2{top:31.5%;height:7.5%}
+.sh-key.sh-pwr{right:calc(var(--sh-pw) * -.014);width:calc(var(--sh-pw) * .017);top:26%;height:11%;
+  background:linear-gradient(270deg,#7f92a6,#39424e 55%,#232a33)}
+.sh-screen{
+  position:relative;width:100%;height:100%;overflow:hidden;
+  border-radius:calc(var(--sh-pw) * .118);background:#000;
+}
+.sh-screen iframe{display:block;width:100%;height:100%;border:0}
+/* the island sits over the display, the way it does on the real thing */
+.sh-island{
+  position:absolute;z-index:4;top:calc(var(--sh-pw) * .028);left:50%;
+  transform:translateX(-50%);
+  width:calc(var(--sh-pw) * .30);height:calc(var(--sh-pw) * .082);
+  border-radius:999px;background:#000;
+  box-shadow:0 0 0 .5px rgba(120,140,165,.35);
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:calc(var(--sh-pw) * .022);pointer-events:none;
+}
+.sh-lens{
+  width:calc(var(--sh-pw) * .036);height:calc(var(--sh-pw) * .036);border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#3c5f7d 0%,#12202e 46%,#05090e 100%);
+  box-shadow:0 0 0 .5px rgba(150,180,210,.35),inset 0 0 2px rgba(120,200,255,.6);
+}
+/* glass: a light rake across the front, and the home indicator */
+.sh-glass{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  border-radius:calc(var(--sh-pw) * .118);
+  background:linear-gradient(118deg,
+    rgba(255,255,255,.11) 0%, rgba(255,255,255,.045) 13%,
+    rgba(255,255,255,0) 30%, rgba(255,255,255,0) 78%,
+    rgba(180,220,255,.05) 96%, rgba(180,220,255,.09) 100%);
+}
+.sh-bar{
+  position:absolute;z-index:4;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--sh-pw) * .030);width:34%;height:calc(var(--sh-pw) * .016);
+  border-radius:999px;background:rgba(255,255,255,.42);pointer-events:none;
+}
+
+.sh-attract{
+  position:absolute;inset:0;width:100%;height:100%;border:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:calc(var(--sh-pw) * .05);padding:8%;
+  background:
+    radial-gradient(85% 55% at 50% 74%, rgba(255,148,36,.20), transparent 70%),
+    linear-gradient(180deg,#05070f 0%,#0a1020 55%,#07050f 100%);
+  color:var(--sh-ink);font:inherit;text-align:center;
+}
+.sh-attract .sh-title{
+  font:900 calc(var(--sh-pw) * .155)/1 "Arial Black",Impact,system-ui,sans-serif;
+  letter-spacing:.02em;color:#fff;text-shadow:0 0 18px rgba(255,148,36,.75);
+}
+.sh-attract .sh-play{
+  width:calc(var(--sh-pw) * .28);height:calc(var(--sh-pw) * .28);border-radius:50%;
+  display:grid;place-items:center;
+  background:rgba(255,148,36,.14);box-shadow:0 0 0 1px rgba(255,148,36,.65),0 0 28px -6px rgba(255,148,36,.8);
+  transition:transform .18s ease, background .18s ease;
+}
+.sh-attract .sh-play svg{width:38%;height:38%;fill:var(--sh-amber-lit);margin-left:8%}
+.sh-attract:hover .sh-play,.sh-attract:focus-visible .sh-play{transform:scale(1.09);background:rgba(255,148,36,.24)}
+.sh-attract .sh-hint{font:800 calc(var(--sh-pw) * .045)/1.5 system-ui,sans-serif;letter-spacing:.2em;color:var(--sh-ink-dim)}
+
+/* Ten sliders at 157px wide is not a game, it is a diagram. Tap to expand styles
+   the phone in place rather than moving it, so the iframe is never reloaded and the
+   run survives. The Fullscreen API is skipped deliberately: iOS Safari will not
+   honour it on an iframe. */
+.sh-grow{
+  position:absolute;top:calc(var(--sh-pw) * .075);right:calc(var(--sh-pw) * .075);
+  z-index:4;width:calc(var(--sh-pw) * .17);height:calc(var(--sh-pw) * .17);
+  display:none;place-items:center;border:0;border-radius:calc(var(--sh-pw) * .05);
+  background:rgba(6,13,24,.82);
+  box-shadow:inset 0 0 0 1px rgba(255,148,36,.55);cursor:pointer;
+}
+.sh-phone.sh-live .sh-grow{display:grid}
+.sh-grow svg{width:52%;height:52%;fill:none;stroke:var(--sh-amber-lit);stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.sh-grow:hover,.sh-grow:focus-visible{background:rgba(255,148,36,.22)}
+
+body.sh-zoomed{overflow:hidden}
+body.sh-zoomed .sh-phone.sh-big{
+  position:fixed;inset:0;z-index:200;width:100%;height:100%;
+  padding:0;border-radius:0;box-shadow:none;background:#000;
+}
+body.sh-zoomed .sh-phone.sh-big .sh-island,
+body.sh-zoomed .sh-phone.sh-big .sh-key,
+body.sh-zoomed .sh-phone.sh-big .sh-glass,
+body.sh-zoomed .sh-phone.sh-big .sh-bar,
+body.sh-zoomed .sh-phone.sh-big .sh-grow{display:none}
+body.sh-zoomed .sh-phone.sh-big .sh-screen{border-radius:0}
+.sh-shrink{
+  display:none;position:fixed;z-index:201;
+  top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));
+  width:40px;height:40px;place-items:center;border:0;border-radius:12px;cursor:pointer;
+  background:rgba(6,13,24,.86);
+  box-shadow:inset 0 0 0 1px rgba(255,148,36,.55);
+}
+body.sh-zoomed .sh-shrink{display:grid}
+.sh-shrink svg{width:18px;height:18px;fill:none;stroke:#ffd9a2;stroke-width:2.6;
+  stroke-linecap:round}
+/* Same materials as the close button so it belongs, but a labelled pill at the
+   OPPOSITE corner rather than a 40px icon: it has to be unmistakably not the way
+   out of full screen. Top left also keeps it clear of the bottom corners, where
+   the games keep their own pause and mute buttons. */
+.sh-bail{
+  display:none;position:fixed;z-index:201;
+  top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));
+  align-items:center;gap:7px;height:40px;padding:0 13px;border-radius:12px;
+  text-decoration:none;background:rgba(6,13,24,.86);
+  box-shadow:inset 0 0 0 1px rgba(255,148,36,.55);
+  color:#ffd9a2;font:800 9px/1 system-ui,sans-serif;letter-spacing:.14em;
+  text-transform:uppercase;
+}
+body.sh-zoomed .sh-bail{display:inline-flex}
+.sh-bail svg{width:12px;height:12px;fill:none;stroke:#ffd9a2;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.sh-bail:hover,.sh-bail:focus-visible{background:rgba(255,148,36,.20)}
+
+/* The control panel: a printed overlay with real parts standing on it. The
+   artwork is one <symbol> referenced three times rather than three copies of
+   18KB of identical SVG in a hand maintained file. */
+.sh-deck{
+  position:relative;margin:calc(var(--sh-pw) * .045) calc(var(--sh-pw) * .035) 0;
+  padding:calc(var(--sh-pw) * .010) calc(var(--sh-pw) * .028);
+  border-radius:calc(var(--sh-pw) * .05);
+  background:linear-gradient(180deg,#101f31 0%,#0a1725 60%,#060e18 100%);
+  box-shadow:inset 0 3px 9px rgba(0,0,0,.7),0 2px 0 rgba(0,0,0,.5);
+}
+.sh-panel{display:block;width:100%;height:auto}
+
+/* coin door, because nothing says arcade faster. It is also the least meaningful
+   thing on the machine, so on a phone it is what gets cut to put the whole
+   cabinet on one screen. */
+.sh-coin{
+  position:relative;margin:calc(var(--sh-pw) * .05) calc(var(--sh-pw) * .17) 0;
+  height:calc(var(--sh-pw) * .115);border-radius:calc(var(--sh-pw) * .02);
+  background:linear-gradient(180deg,#0a1524 0%,#060e19 100%);
+  box-shadow:inset 0 0 0 1px rgba(140,170,200,.35),inset 0 3px 7px rgba(0,0,0,.8);
+  display:flex;align-items:center;justify-content:center;gap:calc(var(--sh-pw) * .05);
+}
+.sh-slot{
+  width:calc(var(--sh-pw) * .012);height:calc(var(--sh-pw) * .058);border-radius:2px;
+  background:#000;box-shadow:0 0 0 1px rgba(190,215,240,.5),0 0 6px -1px rgba(55,208,245,.5);
+}
+.sh-ret{
+  width:calc(var(--sh-pw) * .1);height:calc(var(--sh-pw) * .046);
+  border-radius:calc(var(--sh-pw) * .01);background:linear-gradient(180deg,#1b2b3d,#0b1420);
+  box-shadow:inset 0 0 0 1px rgba(150,180,210,.4);
+}
+@media (max-width:599px){ .sh-coin{display:none} }
+
+/* The quieter of the two routes out, centred under the machine. The marquee is
+   the loud one. position:relative IS LOAD BEARING: .sh-cab-body is positioned, so
+   its drop shadow paints over anything in flow beneath it, and this sits 13px
+   under that edge. Lifting it into the positioned layer is what turns it on. */
+.sh-cab .sh-visit{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:9px;margin:13px auto 0;width:max-content;
+  padding:11px 17px;border-radius:999px;text-decoration:none;
+  font:800 11px/1 system-ui,sans-serif;letter-spacing:.16em;
+  background:radial-gradient(circle at 34% 26%,#ffd9a2,#ff9424 62%,#d06a0c);
+  color:#1c0c00;
+  box-shadow:0 0 0 1px rgba(255,214,150,.65),
+             0 0 18px -4px rgba(255,148,36,.6),
+             0 0 40px -16px rgba(255,148,36,.45),
+             inset 0 1px 0 rgba(255,255,255,.55);
+}
+.sh-cab .sh-visit svg{width:13px;height:13px;fill:currentColor}
+.sh-cab .sh-visit:hover,.sh-cab .sh-visit:focus-visible{filter:brightness(1.06)}
+
+@media (prefers-reduced-motion:reduce){
+  .sh-marquee::after{animation:none;opacity:.35}
+  .sh-thread::after{animation:none;top:50%}
+  .sh-attract .sh-play,.sh-cab .sh-visit,.sh-marq{transition:none}
+  .sh-attract:hover .sh-play,.sh-attract:focus-visible .sh-play{transform:none}
+}
 
 @media (prefers-reduced-motion:reduce){
   .hero-down{transition:none}
