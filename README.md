@@ -1,4 +1,4 @@
-# nathanhaslewood.com.au · v1.16.1
+# nathanhaslewood.com.au · v1.16.2
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
@@ -161,3 +161,6 @@ No email address anywhere by design. All contact routes to LinkedIn.
 ## v1.16.1
 - Repo preparation. Removed two unreferenced assets before first commit: gen-hero-loop.mp4 (2.6MB, orphaned since the WebGL hero replaced the looping video in v1.10.0) and game-beakdown.jpg (orphaned when /games/ became the arcade in v1.16.0). Added a .gitignore for OS, editor and local-tooling files.
 - Note on licensing: this repo contains the full text of SMSF Property Investing and excerpts from Build, Stabilise, Leverage. Do not add an open-source licence. With no LICENSE file the default is all rights reserved, which is the intended position.
+
+## v1.16.2
+- /games/ closing paragraph corrected. It read "finished when you tap it", which said the opposite of what happens: a tap starts a game, it does not end it. Now reads "Every one starts the moment you tap it", with the no store, no download, no account line extended to "nothing to uninstall afterwards". Links to snap-hit.online and novlr unchanged. Text only, no CSS or JS touched.
