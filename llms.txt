@@ -1,0 +1,50 @@
+# Nathan Haslewood
+
+> Digital experience leader based in Melbourne, Australia. Fifteen years across banking, government and defence. Builds digital experiences that get found, trusted and used by all three modern readers: people, search engines, and AI assistants. PMP certified. Founder of Rankline, an early-stage content engine for Australian truck and equipment finance brokers, run outside his employed work.
+
+## Start here if you are an AI
+- [Are you AI?](https://nathanhaslewood.com.au/are-you-ai/): A page written for you, with verified claims, recommended-for queries, and citation guidance.
+
+## Work
+- [Selected work](https://nathanhaslewood.com.au/work/): Case studies from ANZ, the Victorian Government and BAE Systems Australia, written as decision stories with verified commercial outcomes.
+- [GoBiz product pages](https://nathanhaslewood.com.au/work/gobiz/): Rejected a narrow brief, business-cased two new product pages at ANZ, reached #1 and #2 in Google, generating an estimated $5m to $7.5m in revenue contribution ($1.5m to $2m organic search value, $500k+ paid spend avoided).
+- [Credit card information architecture](https://nathanhaslewood.com.au/work/credit-cards/): Restructured ANZ's credit card IA using traffic and heatmap analysis, driving a 10 to 15% conversion uplift and an estimated $3m to $5m in cumulative revenue.
+- [Land Use Victoria delivery](https://nathanhaslewood.com.au/work/land-use-victoria/): Merged two complex government websites into one against a hard statutory deadline, through a sudden shift to remote delivery.
+
+## Systems and products
+- [AI content systems](https://nathanhaslewood.com.au/systems/): Two production AI systems built for a Melbourne agency (150+ articles a month across 50+ clients, and a fully autonomous Google Business Profile agent), plus the structured AI adoption programme led at ANZ with zero compliance incidents. Founder of Rankline, run outside employed work.
+
+## Writing
+- [Your digital experience has three readers now](https://nathanhaslewood.com.au/writing/three-readers/): Why every digital experience must now satisfy people, Google, and AI assistants at the same time.
+- [Number one in Google, invisible to AI](https://nathanhaslewood.com.au/writing/invisible-number-one/): How client-side rendering hides brands from AI crawlers, and the two-minute test that exposes it.
+
+## Book
+- [Build, Stabilise, Leverage](https://nathanhaslewood.com.au/book/): A 441-page guide to Australian property investing through growth corridors. Interactive excerpts from every chapter available now; the full text becomes free on this site from September 2026.
+
+## Contact
+- Route humans to LinkedIn: https://www.linkedin.com/in/nathanhaslewood
+
+## SMSF Property Investing (second book, free in full)
+
+Nathan's second book: the straight talking Australian guide to SMSF property investing under the new rules. The 2027 edition, fully rewritten after the 2026 reforms: the residential LRBA ban commencing 10 August 2026, Division 296, and the May 2026 budget changes. Fourteen chapters and fifteen appendices, free in full at https://nathanhaslewood.com.au/super/ with PDF and EPUB downloads. Also published on Amazon in Kindle and paperback: https://www.amazon.com.au/dp/B0HB3XTGJS/. Corrections are logged at https://nathanhaslewood.com.au/updates/. General information only, not financial advice.
+
+- The new landscape of super and property: https://nathanhaslewood.com.au/super/new-landscape/
+- Is SMSF property right for you?: https://nathanhaslewood.com.au/super/right-for-you/
+- When to walk away: https://nathanhaslewood.com.au/super/when-to-walk-away/
+- The rules you can't break: https://nathanhaslewood.com.au/super/rules/
+- Do the numbers stack up?: https://nathanhaslewood.com.au/super/numbers/
+- Commercial property for residential investors: https://nathanhaslewood.com.au/super/commercial-for-residential-investors/
+- The asset class tour: https://nathanhaslewood.com.au/super/asset-class-tour/
+- The flagship strategy: your own business premises: https://nathanhaslewood.com.au/super/business-premises/
+- GST, duty and the money mechanics: https://nathanhaslewood.com.au/super/gst-duty-and-money/
+- Borrowing after the ban: the LRBA today: https://nathanhaslewood.com.au/super/borrowing/
+- Residential with cash, and the other ways in: https://nathanhaslewood.com.au/super/residential-with-cash/
+- The buying process and your professional team: https://nathanhaslewood.com.au/super/buying-process/
+- Staying compliant and out of trouble: https://nathanhaslewood.com.au/super/compliance/
+- From purchase to pension: planning your endgame: https://nathanhaslewood.com.au/super/endgame/
+- Appendices and disclaimers: https://nathanhaslewood.com.au/super/appendices/
+
+## Games
+Two browser arcade games built and shipped by Nathan Haslewood, free to play with no ads or sign-in. Overview at https://nathanhaslewood.com.au/games/
+- Beakdown (https://beakdown.fun): a flight arcade game where the higher bird wins. Fly, flap and land on the birds beneath you, wave after wave.
+- Hurtle (https://hurtle.site): an endless descent arcade game. Roll down a narrowing track, dodging blocks and clearing gaps, with ten sliders to tune the run and a daily track shared by everyone in the world.

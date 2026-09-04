@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number one in Google, invisible to AI · Nathan Haslewood</title>
+<meta name="description" content="A brand can dominate search results and still not exist to AI assistants. The mechanism is client-side rendering, and the test takes two minutes. Here's how to run it on your own site.">
+<link rel="canonical" href="https://nathanhaslewood.com.au/writing/invisible-number-one/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Number one in Google, invisible to AI",
+  "author": { "@type": "Person", "name": "Nathan Haslewood", "url": "https://nathanhaslewood.com.au/" },
+  "datePublished": "2026-07-03",
+  "inLanguage": "en-AU",
+  "url": "https://nathanhaslewood.com.au/writing/invisible-number-one/"
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Nathan Haslewood<i>.</i></a>
+    <nav aria-label="Primary">
+      <a href="/work/">Work</a>
+      <a href="/systems/">Systems</a>
+      <a href="/games/">Games</a>
+      <a href="/writing/" aria-current="page">Writing</a>
+      <a href="/book/">Book</a>
+      <a href="/super/">Super</a>
+      <a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a>
+      <a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="pagehead">
+    <div class="wrap">
+      <p class="eyebrow"><span class="path">/writing/invisible-number-one/</span><span>essay</span></p>
+      <h1>Number one in Google, invisible to AI</h1>
+      <p class="lede">The strangest audit result I keep finding, and the two-minute test that exposes it on any site, including yours.</p>
+      <div class="metarow">
+        <span class="meta"><b>Nathan Haslewood</b></span>
+        <span class="meta">July 2026</span>
+        <span class="meta">4 minute read</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="prose">
+        <p>Here's a result that shouldn't be possible. A brand ranks first in Google for its most valuable terms. Its pages are polished, its SEO team is competent, its analytics look healthy. Ask an AI assistant about the category, and the brand doesn't exist. Not ranked low. Absent.</p>
+        <p>I've now seen this pattern enough times, across enterprise sites in finance and beyond, that I treat it as a category of failure with a name: the JavaScript shell.</p>
+
+        <h2>The mechanism</h2>
+        <p>Many enterprise websites, particularly client-side rendered implementations of large CMS and framework stacks, don't actually send your content when a machine requests a page. They send a near-empty HTML document, a div and a script tag, and rely on the visitor's browser to execute JavaScript that fetches and assembles the real page.</p>
+        <p>For people, this works. For Google, it mostly works too, because Google invested years in rendering infrastructure that executes JavaScript at crawl scale. That investment is precisely why the problem stayed hidden: the one machine everyone measured could see the content, so nobody noticed the response was empty.</p>
+        <p>AI crawlers broke the assumption. GPTBot, ClaudeBot, PerplexityBot and their peers generally don't execute JavaScript. They request the page, receive the shell, and index what they were given: nothing. Every pixel of that experience, every carefully approved word, is invisible to the systems your customers increasingly ask for recommendations. The site is simultaneously a search success and an AI-era ghost.</p>
+
+        <h2>The two-minute test</h2>
+        <p>You don't need an audit engagement to check this. You need a browser.</p>
+        <p>Open your most commercially important page. View the page source, the raw response, not the rendered inspector view. Now search that source for a sentence you can see on the screen. If the words a customer reads aren't in the response, no AI assistant is reading them either. For a second opinion, fetch the page with JavaScript disabled, or from the command line, and see what survives.</p>
+        <p>Then run the commercial version of the test: ask two or three AI assistants the category question your customers actually ask, best provider for this situation, and see who gets named. If it's your competitors, you now know one likely reason why.</p>
+
+        <h2>The fix is boring, which is the good news</h2>
+        <p>Nothing here requires replatforming next quarter. The remediation ladder, cheapest first: make sure critical facts exist in server-rendered HTML somewhere, even if the main experience stays client-rendered. Publish the plain-language layer machines want: semantic markup, structured data, an <a href="/llms.txt">llms.txt</a> index. Confirm your robots policy isn't blocking AI crawlers by default, which some enterprise configurations do without anyone having decided it. And when the next rebuild comes, make server-side rendering of content a requirement, not a preference.</p>
+        <p>The deeper point is organisational. This failure lives in the gap between teams: the SEO team measures Google, the engineering team measures performance, and nobody owns the question "what does a machine that can't run JavaScript receive from us?" Someone senior has to own the third reader. In most organisations today, nobody does.</p>
+
+        <h2>Try it on this site</h2>
+        <p>Fair's fair. View the source of this page: every word you're reading is in the response. The <a href="/">homepage</a> lets you flip any visitor's view to exactly what Google and an AI assistant receive, generated live from the page's own markup. The <a href="/colophon/">colophon</a> shows the raw response this URL returns. If I'm going to sell the diagnosis, my own site had better pass the test.</p>
+
+        <p class="footnote">Nathan Haslewood is a digital experience leader in Melbourne. He builds AI-era content systems, including Rankline, and has spent fifteen years shipping digital experiences in banking, government and defence.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="giant" aria-hidden="true">Nathan Haslewood<span>.</span></div>
+  <div class="wrap">
+    <div>
+      <p class="sig">Nathan Haslewood<i>.</i></p>
+      <p>Digital experiences that get found, trusted and used. By people, by Google, and now by AI.</p>
+    </div>
+    <div>
+      <h4>Pages</h4>
+      <ul>
+        <li><a href="/work/">Work</a></li>
+        <li><a href="/systems/">Systems</a></li>
+        <li><a href="/games/">Games</a></li>
+        <li><a href="/writing/">Writing</a></li>
+        <li><a href="/book/">Book</a></li>
+        <li><a href="/super/">Super: the free book</a></li>
+        <li><a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a></li>
+        <li><a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Machine layer</h4>
+      <ul>
+        <li><a href="/colophon/">How this site works</a></li>
+        <li><a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/llms.txt">/llms.txt</a></li>
+        <li><a href="/sitemap.xml">/sitemap.xml</a></li>
+        <li><a href="/robots.txt">/robots.txt</a></li>
+      </ul>
+    </div>
+    <div class="fine">
+      <span>© <span id="y">2026</span> Nathan Haslewood · Melbourne, Australia</span>
+      <span>Static HTML. No framework, no tracking, no cookies.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+</body>
+</html>

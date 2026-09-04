@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI systems and products · Nathan Haslewood</title>
+<meta name="description" content="Production AI content systems designed by Nathan Haslewood: a 150-article-a-month engine for 50+ clients, a fully autonomous Google Business Profile agent, structured AI adoption at ANZ with zero compliance incidents.">
+<link rel="canonical" href="https://nathanhaslewood.com.au/systems/">
+<meta property="og:image" content="https://nathanhaslewood.com.au/assets/img/gen-systems.jpg">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Nathan Haslewood<i>.</i></a>
+    <nav aria-label="Primary">
+      <a href="/work/">Work</a>
+      <a href="/systems/" aria-current="page">Systems</a>
+      <a href="/games/">Games</a>
+      <a href="/writing/">Writing</a>
+      <a href="/book/">Book</a>
+      <a href="/super/">Super</a>
+      <a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a>
+      <a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="pagehead">
+    <div class="wrap">
+      <p class="eyebrow"><span class="path">/systems/</span><span>designed · built · handed over</span></p>
+      <h1>Production AI, with governance built in</h1>
+      <p class="lede">Plenty of people use AI tools. I design production systems: architectures that run daily, survive handover to non-technical operators, and hold up in regulated environments. Everything on this page has run in production, not in a demo.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="prose">
+        <h2>A content engine that runs without me</h2>
+        <p>Built freelance for CJ Digital, a Melbourne agency producing content for more than 50 clients across seven verticals. The problem was economic: quality content production doesn't scale on human hours alone, and cheap automation produces the generic sludge that Google and readers both punish.</p>
+        <p>The system handles topic discovery and writing end to end. Each client has a voice profile, so the output reads like them, not like a model. Every draft passes through two rounds of critical self-review and a factual verification pass before a human sees it. A self-learning loop absorbs changes in SEO and AI-search best practice without manual prompt updates. And the whole thing was designed for zero-handover operation: the agency's non-technical staff run it day to day, which is the hardest constraint and the one that matters most.</p>
+      </div>
+
+      <div class="sim" id="sim" data-sim>
+        <div class="sim-head">
+          <p class="sim-eyebrow">One article through the pipeline</p>
+          <button class="sim-btn" type="button" data-sim-run>Run it</button>
+        </div>
+
+        <div class="sim-doc">
+          <p class="sim-doc-label" data-sim-doclabel>Draft sentence</p>
+          <p class="sim-text" data-sim-text>Nearly every new client tells us they wish they&rsquo;d come sooner.</p>
+          <p class="sim-verdict" data-sim-verdict></p>
+        </div>
+
+        <ol class="sim-pipe">
+          <li data-sim-stage="0"><span class="sim-dot"></span><span class="sim-name">Topic discovery</span><span class="sim-state"></span></li>
+          <li data-sim-stage="1"><span class="sim-dot"></span><span class="sim-name">Client voice profile</span><span class="sim-state"></span></li>
+          <li data-sim-stage="2"><span class="sim-dot"></span><span class="sim-name">Draft</span><span class="sim-state"></span></li>
+          <li data-sim-stage="3"><span class="sim-dot"></span><span class="sim-name">Critical review, pass one</span><span class="sim-state"></span></li>
+          <li data-sim-stage="4"><span class="sim-dot"></span><span class="sim-name">Revision</span><span class="sim-state"></span></li>
+          <li data-sim-stage="5"><span class="sim-dot"></span><span class="sim-name">Critical review, pass two</span><span class="sim-state"></span></li>
+          <li data-sim-stage="6"><span class="sim-dot"></span><span class="sim-name">Factual verification</span><span class="sim-state"></span></li>
+          <li data-sim-stage="7"><span class="sim-dot"></span><span class="sim-name">Publish</span><span class="sim-state"></span></li>
+        </ol>
+
+        <p class="sim-caption" data-sim-caption>The gate that matters is pass two. It checks whether the revision fixed the problem or just reworded it.</p>
+      </div>
+
+      <div class="outcomes">
+        <div><div class="n">$150k to $220k</div><p>Annual production value recovered for the agency</p></div>
+        <div><div class="n">~$8 / month</div><p>API cost replacing roughly $1,260 a month of production labour</p></div>
+        <div><div class="n">$15k to $25k</div><p>Market-rate cost of the builds, delivered freelance</p></div>
+      </div>
+
+      <div class="prose">
+        <h2>A fully autonomous agent</h2>
+        <p>The second CJ Digital system is a Google Business Profile agent: content generation, rotation, scheduling and publishing across 21 clients with zero human input, running on a cloud server for about $30 a month. I defined the use cases, designed the evaluation frameworks, and set the quality boundaries it operates inside. It's a small system with a large lesson. Full autonomy is an architecture decision you earn through constraint design, not a switch you flip. The agent can only act within boundaries that make its worst output acceptable, which is exactly how autonomy should be scoped in any organisation that answers to a regulator.</p>
+
+        <h2>AI adoption inside a big four bank</h2>
+        <p>At ANZ I led the structured adoption of AI across the content function: capability building, guardrails, and workflow redesign rather than tool distribution. The result was a 50% improvement in production velocity with zero compliance incidents. That second number is the one I lead with in regulated environments, because velocity without a clean compliance record is just risk with better branding.</p>
+
+        <h2>Testing the method on my own</h2>
+        <p>Rankline is an early-stage content engine I'm building for a niche Australian finance market, on the same three-reader thesis as this site. I run it outside my employed work, in a sector deliberately distant from it, on my own time and with my own money. It's where I pressure-test the method in the open, before anything like it goes near regulated work.</p>
+
+        <h2>What I bring to an AI engagement</h2>
+        <p>The rare combination is not prompt skill. It's systems architecture plus regulated-industry judgement: knowing where the human gate belongs, what the audit trail needs to show, and how to design for the operator who inherits the system after you leave. If you're weighing up an AI content or discoverability initiative and need it to survive both the compliance review and the handover, <a href="/contact/">that's the conversation I'm built for</a>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="giant" aria-hidden="true">Nathan Haslewood<span>.</span></div>
+  <div class="wrap">
+    <div>
+      <p class="sig">Nathan Haslewood<i>.</i></p>
+      <p>Digital experiences that get found, trusted and used. By people, by Google, and now by AI.</p>
+    </div>
+    <div>
+      <h4>Pages</h4>
+      <ul>
+        <li><a href="/work/">Work</a></li>
+        <li><a href="/systems/">Systems</a></li>
+        <li><a href="/games/">Games</a></li>
+        <li><a href="/writing/">Writing</a></li>
+        <li><a href="/book/">Book</a></li>
+        <li><a href="/super/">Super: the free book</a></li>
+        <li><a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a></li>
+        <li><a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Machine layer</h4>
+      <ul>
+        <li><a href="/colophon/">How this site works</a></li>
+        <li><a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/llms.txt">/llms.txt</a></li>
+        <li><a href="/sitemap.xml">/sitemap.xml</a></li>
+        <li><a href="/robots.txt">/robots.txt</a></li>
+      </ul>
+    </div>
+    <div class="fine">
+      <span>© <span id="y">2026</span> Nathan Haslewood · Melbourne, Australia</span>
+      <span>Static HTML. No framework, no tracking, no cookies.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/pipeline-sim.js" defer></script>
+</body>
+</html>

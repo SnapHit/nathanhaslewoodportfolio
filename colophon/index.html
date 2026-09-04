@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How this site is built for three readers · Nathan Haslewood</title>
+<meta name="description" content="The technical and editorial decisions behind nathanhaslewood.com.au: static HTML, server-rendered everything, structured data, llms.txt, open AI crawler policy, and a live demonstration.">
+<link rel="canonical" href="https://nathanhaslewood.com.au/colophon/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Nathan Haslewood<i>.</i></a>
+    <nav aria-label="Primary">
+      <a href="/work/">Work</a>
+      <a href="/systems/">Systems</a>
+      <a href="/games/">Games</a>
+      <a href="/writing/">Writing</a>
+      <a href="/book/">Book</a>
+      <a href="/super/">Super</a>
+      <a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a>
+      <a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="pagehead">
+    <div class="wrap">
+      <p class="eyebrow"><span class="path">/colophon/</span><span>the site as evidence</span></p>
+      <h1>How this site is built for three readers</h1>
+      <p class="lede">I sell the diagnosis that most digital experiences fail their machine readers. So this site is constructed as the counter-example, and every claim on this page is verifiable from your browser right now.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="prose">
+        <h2>The stack, such as it is</h2>
+        <p>Static HTML, CSS and a little JavaScript, built with AI assistance under my direction. No framework, no build pipeline, no CMS, no tracking, no cookies. Hosted on Netlify. Every page is a complete document: all content arrives in the initial HTML response, JavaScript only adds enhancement on top. Turn JavaScript off entirely and you lose the interactive demonstrations, not one word of content. That single decision is what most enterprise stacks get wrong, and it's the subject of <a href="/writing/invisible-number-one/">this essay</a>.</p>
+
+        <h2>What each reader gets</h2>
+        <p><strong>People</strong> get fast pages (three small font families, a handful of images, and inline SVG are the only assets), visible keyboard focus, honoured reduced-motion preferences, and semantic landmarks throughout.</p>
+        <p><strong>Google</strong> gets clean titles and descriptions on every page, canonical URLs, a heading hierarchy that matches the actual document structure, schema.org structured data (Person, Book, Article as appropriate), and a <a href="/sitemap.xml">sitemap</a>.</p>
+        <p><strong>AI assistants</strong> get everything above plus an explicit welcome: a <a href="/robots.txt">robots.txt</a> that names and allows GPTBot, ClaudeBot, PerplexityBot and Google-Extended, and an <a href="/llms.txt">llms.txt</a>, a plain-language index of this site written for language models. The <a href="/">homepage frame</a> rebuilds any visitor's view into exactly what these readers receive, derived live from the page's own markup.</p>
+
+        <h2>Watch this page fetch itself</h2>
+        <p>Below, this page requests its own URL and prints the opening of the raw response, the same bytes any crawler receives. Note that the content is simply there.</p>
+      </div>
+
+      <div class="panel-ai" style="border-radius:10px;margin:1.6rem 0">
+        <div class="log">GET <span style="color:#EDEAE3">/colophon/</span> · the response begins:</div>
+        <pre id="raw-response">Fetching…</pre>
+      </div>
+
+      <div class="prose">
+        <p>For contrast, here is the pattern the JavaScript-shell sites return. This is a representative reconstruction of what several major Australian brands actually serve to crawlers, anonymised:</p>
+      </div>
+
+      <div class="panel-ai" style="border-radius:10px;margin:1.6rem 0">
+        <div class="log">GET / · a typical client-rendered response, in full:</div>
+        <pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;Loading…&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id="root"&gt;&lt;/div&gt;
+    &lt;script src="/static/js/main.8f3a1c.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+        <p class="note">That's it. Every product, every rate, every carefully approved sentence lives behind that script tag, invisible to any reader that doesn't execute JavaScript. Google renders it. Most AI crawlers don't.</p>
+      </div>
+
+      <div class="prose">
+        <h2>The design system, briefly</h2>
+        <p>Type is Instrument Sans everywhere a person reads, one family from the biggest headline to the smallest caption with weight doing the work, and JetBrains Mono reserved for the machine layer: metadata, paths, and anything a crawler would also see. Paper is a bright warm white, ink is near black, and the three readers own the palette: signal orange for people, cobalt for search, green for assistants, fused in the spectrum bar that runs along the top of every page and through the hero's slow aurora. Section eyebrows are the site's own URL paths, because the information architecture is the argument.</p>
+
+        <h2>Why it matters beyond vanity</h2>
+        <p>This site is the cheapest consulting artefact I own. When I tell an executive their experience is invisible to its third reader, the next question is always "what does passing look like?" The answer is one URL. If you want the same diagnosis run on your own estate, <a href="/contact/">start here</a>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="giant" aria-hidden="true">Nathan Haslewood<span>.</span></div>
+  <div class="wrap">
+    <div>
+      <p class="sig">Nathan Haslewood<i>.</i></p>
+      <p>Digital experiences that get found, trusted and used. By people, by Google, and now by AI.</p>
+    </div>
+    <div>
+      <h4>Pages</h4>
+      <ul>
+        <li><a href="/work/">Work</a></li>
+        <li><a href="/systems/">Systems</a></li>
+        <li><a href="/games/">Games</a></li>
+        <li><a href="/writing/">Writing</a></li>
+        <li><a href="/book/">Book</a></li>
+        <li><a href="/super/">Super: the free book</a></li>
+        <li><a href="https://novlr.com" target="_blank" rel="noopener">Challenges</a></li>
+        <li><a href="/about/">About</a>
+      <a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Machine layer</h4>
+      <ul>
+        <li><a href="/colophon/">How this site works</a></li>
+        <li><a href="/are-you-ai/">Are you AI?</a></li>
+        <li><a href="/llms.txt">/llms.txt</a></li>
+        <li><a href="/sitemap.xml">/sitemap.xml</a></li>
+        <li><a href="/robots.txt">/robots.txt</a></li>
+      </ul>
+    </div>
+    <div class="fine">
+      <span>© <span id="y">2026</span> Nathan Haslewood · Melbourne, Australia</span>
+      <span>Static HTML. No framework, no tracking, no cookies.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+</body>
+</html>
