@@ -1,9 +1,14 @@
 {
   // nathanhaslewood.com.au — static assets only, no Worker script.
-  // Deliberately no "main" and no assets binding: a binding without a Worker script
-  // makes the build fail silently rather than erroring.
-  "name": "nathanhaslewood-portfolio",
+  // Name must match the repo name or Workers Builds overrides it and opens a PR.
+  "name": "nathanhaslewoodportfolio",
   "compatibility_date": "2026-09-01",
+
+  // AFTER the custom domain is live and verified, change both of these to false.
+  // Leaving them true serves the whole site a second time on *.workers.dev.
+  "workers_dev": true,
+  "preview_urls": true,
+
   "assets": {
     "directory": "./",
     // serves /work/ from /work/index.html and keeps the trailing-slash URLs intact
