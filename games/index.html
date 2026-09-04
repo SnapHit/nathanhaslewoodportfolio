@@ -38,32 +38,28 @@
 </header>
 
 <main id="main">
-  <section class="pagehead">
+
+  <section class="hero-game" id="top">
+    <iframe id="heroGame" class="hero-game-frame"
+      src="https://snap-hit.online/play/snaphit.html"
+      title="SnapHit: knock the ducks down to continue"
+      scrolling="no" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+    <a class="hero-skip" href="#more">Skip the game</a>
+    <a class="hero-down" id="heroDown" href="#more">
+      <span>More</span>
+      <svg viewBox="0 0 20 12" aria-hidden="true"><path d="M2 2 L10 10 L18 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </section>
+
+  <section class="pagehead" id="more">
     <div class="wrap">
       <p class="eyebrow"><span class="path">/games/</span><span>snaphit studios &middot; instant. play.</span></p>
       <h1>Games</h1>
       <p class="lede">I run a one-person game studio. Original browser arcade games, free, no ads, no sign-in, nothing to install. The cabinets below are live. Tap one and it plays right here.</p>
     </div>
   </section>
-
   <section class="section">
     <div class="wrap">
-      <div class="arcade-hero">
-        <div class="cab is-hero" data-cab>
-          <div class="cab-marquee"><span>Instant</span><i>.</i><span>Play</span><i>.</i></div>
-          <div class="cab-screen">
-            <button class="cab-start" type="button" data-cab-start aria-label="Start the demo">
-              <span class="cab-coin" aria-hidden="true"></span>
-              <span class="cab-press">Press to play</span>
-            </button>
-            <iframe class="cab-frame" data-cab-frame data-src="https://snap-hit.online/play/snaphit.html"
-              title="SnapHit: a playable demo" loading="lazy" allow="autoplay; gamepad; fullscreen"
-              referrerpolicy="no-referrer"></iframe>
-          </div>
-          <div class="cab-deck"><span class="cab-name">SnapHit</span><a class="cab-link" href="https://snap-hit.online" target="_blank" rel="noopener">snap-hit.online &rarr;</a></div>
-        </div>
-      </div>
-
       <dl class="studio-stats">
         <div><dt>Games shipped</dt><dd>04</dd></div>
         <div><dt>In development</dt><dd>03</dd></div>
@@ -165,5 +161,6 @@
 </footer>
 <script src="/assets/js/site.js" defer></script>
 <script src="/assets/js/arcade.js" defer></script>
+<script src="/assets/js/hero-game.js" defer></script>
 </body>
 </html>
