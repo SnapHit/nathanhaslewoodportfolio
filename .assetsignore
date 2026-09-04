@@ -2,4 +2,5 @@
 .github
 .gitignore
 .assetsignore
+.wrangler
 README.md
