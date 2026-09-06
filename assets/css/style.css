@@ -415,7 +415,6 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 .artband{margin:2.2rem 0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
 .artband img{display:block;width:100%;aspect-ratio:21/9;object-fit:cover}
 @media (max-width:760px){.artband img{aspect-ratio:16/9}}
-.game-tag{font-family:var(--serif);font-weight:600;font-size:1.28rem;line-height:1.3;letter-spacing:-.01em;color:var(--ink);margin:.1rem 0 .9rem}
 .artband a{display:block}
 .artband a img{transition:transform .35s ease,filter .35s ease}
 .artband a:hover img{transform:scale(1.03);filter:brightness(1.06)}
@@ -600,19 +599,6 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   .sim-text{font-size:1.12rem}
 }
 
-/* ---------- studio counters ---------- */
-.studio-stats{display:grid;grid-template-columns:1fr;gap:0;margin:0;border-top:1px solid var(--line)}
-.studio-stats > div{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
-  padding:.62rem 0;border-bottom:1px solid var(--line)}
-.studio-stats dt{font-family:var(--mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:0}
-.studio-stats dd{margin:0;font-family:var(--mono);font-size:1.05rem;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
-.studio-stats .zero dd{color:var(--ok)}
-@media (min-width:820px){
-  .studio-stats{grid-template-columns:repeat(5,1fr);border-top:0;gap:1.4rem}
-  .studio-stats > div{flex-direction:column;align-items:flex-start;gap:.3rem;border-bottom:0;border-top:2px solid var(--line);padding-top:.7rem}
-  .studio-stats dd{font-size:1.5rem}
-}
-
 /* ---------- v1.17: full-viewport hero game ---------- */
 /* The game loads on arrival and fills the screen under the nav. The way onward is
    withheld until the ducks are cleared, matching snap-hit.online. Ships unlocked;
@@ -657,6 +643,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
    and the cabinet is the frame around it, not the other way round. On narrow screens
    the width decides, on wide ones the height does. */
 :root{
+  --sh-cyan:#37d0f5;
   --sh-amber:#ff9424; --sh-amber-lit:#ffd9a2;
   --sh-ink:#cfe2f5; --sh-ink-dim:#7e93ab;
   --sh-cabx:1.44;                     /* cabinet width, in phone widths */
@@ -986,4 +973,115 @@ body.sh-zoomed .sh-bail{display:inline-flex}
   .hero-down{transition:none}
   .hero-down svg{animation:none}
   .hero-skip{transition:none}
+}
+
+/* ---------- v1.19: the studio card, ported from snap-hit.online ---------- */
+/* Sits after the three cabinets, not before them: you walk past the machines,
+   then meet the person who made them. Same sh- prefix rule as the cabinets. */
+.sh-op{width:min(720px,100%);margin:0 auto}
+.sh-op-body{
+  position:relative;padding:0 0 calc(var(--sh-pw) * .075);
+  border-radius:calc(var(--sh-pw) * .06);overflow:hidden;
+  background:linear-gradient(180deg,#22496f 0%,#173352 34%,#0d2039 100%);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(55,208,245,.5),
+    inset 0 1px 0 rgba(180,232,255,.3),
+    0 0 0 2px rgba(255,148,36,.8),
+    0 0 30px -6px rgba(255,148,36,.4),
+    0 0 70px -20px rgba(55,208,245,.55),
+    0 30px 60px -28px rgba(0,0,0,.95);
+}
+/* The studio header carries the rendered mark. It is the only bitmap on the page. */
+.sh-banner{position:relative;line-height:0;background:#071324;overflow:hidden}
+.sh-banner img{display:block;width:100%;height:auto}
+.sh-banner::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 64%,rgba(17,45,74,.5) 87%,#173352 100%),
+             linear-gradient(90deg,rgba(23,51,82,.45),transparent 8%,transparent 92%,rgba(23,51,82,.45));
+  box-shadow:inset 0 -1px 0 rgba(255,148,36,.4);
+}
+
+.sh-op-info{padding:calc(var(--sh-pw) * .06) calc(var(--sh-pw) * .075) 0}
+.sh-op-info .sh-eyebrow{
+  display:block;margin-bottom:7px;font:800 10px/1 system-ui,sans-serif;
+  letter-spacing:.28em;word-spacing:.5em;color:var(--sh-cyan);opacity:.85;
+}
+/* No rule for the h2: it carries .sh-sr and is visually hidden by design, so the
+   source's display type for it would never paint. The banner carries the name. */
+.sh-op-bio{margin-top:9px;color:var(--sh-ink-dim);font-size:13px;line-height:1.55;max-width:34ch}
+.sh-op-credit{margin-top:13px;font-size:11px;color:var(--sh-ink-dim);letter-spacing:.05em}
+.sh-op-credit span{color:var(--sh-amber);font-weight:700}
+
+/* The scoreboard. It lives here rather than in a standalone block above the
+   cabinets: these are the studio's figures, so the studio presents them. */
+.sh-hi{margin:16px 0 0;font:700 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.sh-hi .sh-row{display:flex;align-items:baseline;gap:6px;padding:5px 0}
+.sh-hi dt{white-space:nowrap;color:#9fc4e2;letter-spacing:.06em;margin:0}
+.sh-hi .sh-dots{flex:1;border-bottom:1px dotted rgba(120,160,195,.45);transform:translateY(-3px)}
+/* dt then dd only: a <span> sibling between them is not valid inside a <dl>, so the dotted
+   leader lives at the head of the dd instead. Renders pixel for pixel the same. */
+.sh-hi dd{flex:1;display:flex;align-items:baseline;gap:6px;justify-content:flex-end;
+  margin:0;white-space:nowrap;color:var(--sh-amber-lit);letter-spacing:.06em}
+.sh-hi .sh-zero dd{color:#5fe08a}
+
+/* Scoped to .sh-op, not bare, for the same reason .sh-cab .sh-visit is: the sitewide
+   a:hover{color:var(--ink)} is (0,1,1) and would outrank a single class, repainting the
+   label and its currentColor triangle near white on the amber gradient. */
+.sh-op .sh-op-btn{
+  display:inline-flex;align-items:center;gap:9px;margin-top:18px;
+  padding:11px 17px;border-radius:999px;text-decoration:none;
+  background:radial-gradient(circle at 34% 26%,#ffd9a2,#ff9424 58%,#a04d06);
+  color:#2a1402;font:800 11px/1 system-ui,sans-serif;letter-spacing:.16em;
+  box-shadow:0 0 0 1px rgba(255,214,150,.6),0 6px 18px -6px rgba(255,148,36,.8),
+             inset 0 1px 0 rgba(255,255,255,.5);
+}
+.sh-op .sh-op-btn svg{width:13px;height:13px;fill:currentColor}
+.sh-op .sh-op-btn:hover,
+.sh-op .sh-op-btn:focus-visible{color:#2a1402;filter:brightness(1.08)}
+
+/* Present for crawlers and screen readers. The banner mark makes the point. */
+.sh-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* ---------- v1.19: the arcade runs dark ---------- */
+/* Only /games/ carries body.arcade, and the treatment is scoped to <main>, so the
+   sticky nav and the site footer keep their sitewide light and warm-dark treatment.
+
+   Why the whole run and not just the rack: the neon on the cabinets only reads as
+   light coming out of darkness if the darkness is the page, not a stripe in it.
+   Darkening the rack alone gave dark hero, light heading, light counters, dark
+   rack, light prose, dark footer. Six bands and five hard edges, and a near-black
+   stripe in the middle of a light page looks like a rendering fault rather than a
+   decision. The page already opened dark on the full-viewport hero, so going light
+   straight after it was the odd part. This makes the whole arcade one dark block.
+
+   The tokens are overridden rather than each rule rewritten, so .pagehead, .section,
+   .prose and the rest come along without touching their sitewide definitions. */
+body.arcade{background:#04070e}
+body.arcade main{
+  --paper:#04070e;
+  --ink:#e8eef6;
+  --ink-2:#9fb3c8;
+  --line:rgba(120,160,195,.20);
+  --ok:#5fe08a;
+  background:#04070e;
+  color:var(--ink);
+}
+/* The aurora blob behind the page heading is the site's own device and lands close
+   to the source's blue wash on dark, so it stays. It is lifted a little because a
+   blur that reads as a tint on paper reads as haze on near-black. */
+body.arcade .pagehead::before{opacity:.34}
+/* The skip link is a focus affordance and has to stay high contrast, so it keeps
+   the light-on-dark pairing rather than following the token flip. */
+body.arcade .hero-skip{background:#EFEBE2;color:#171410;border-color:#EFEBE2}
+/* ::selection resolves var() against the originating element, so the --paper override
+   above would paint selected text near black on the orange highlight. Pinned to paper. */
+body.arcade ::selection{color:#FBFAF6}
+
+/* The shelf, from the source: a faint blue wash at the top over near-black, so the
+   ground does not read as flat. Radial over linear, in that order. */
+.sh-shelf{
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(26,134,196,.13), transparent 62%),
+    linear-gradient(180deg,#04070e 0%,#060d18 40%,#04070e 100%);
 }
