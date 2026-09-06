@@ -1,4 +1,4 @@
-# nathanhaslewood.com.au · v1.19.0
+# nathanhaslewood.com.au · v1.19.1
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
@@ -203,3 +203,13 @@ No email address anywhere by design. All contact routes to LinkedIn.
 - Two tidy-ups from the same review: the ported h2 rule was dead, because the heading carries .sh-sr and is hidden by design with the banner carrying the name, and the scoreboard's dotted leaders were a <span> sibling between <dt> and <dd>, which is not valid inside a <dl>. The leader moved to the head of the <dd>, verified pixel identical.
 - Page weight: HTML 32.4KB to 33.7KB raw, 6.9KB to 7.2KB gzipped. CSS 63.3KB to 67.7KB raw, 15.2KB to 16.7KB gzipped. JavaScript unchanged. So about 1.8KB more over the wire on first paint, plus the 168KB banner only if the reader scrolls to the card. For comparison the other pages load a hero image of 54KB to 211KB eagerly.
 - Verified in Chromium at 390px and 1280px: no horizontal overflow, no console errors, the five figures once, the card below the cabinets and nowhere else. Every text surface inside main measured against its painted background, worst case 6.38:1 on the card bio, everything else above 9:1. Reduced motion leaves no animation running, including the page heading's aurora. With JavaScript off the cabinets, both links out per cabinet, the studio card, the scoreboard, the banner and the hero 'more' link all render. No new off-origin asset requests: the Google Fonts stylesheet is sitewide and pre-existing, and the game iframes are intended. The hero game and its clearing gate are untouched and still gate on clear, Tab and timeout.
+
+## v1.19.1
+- Copy pass on /games/. No CSS, no JavaScript, no structural change.
+- Removed the eyebrow above the heading, so the page now opens straight into 'Games' after the hero.
+- New lede: 'I make games for fun under the name SnapHit Studios. Arcade games built to play on any phone, any device, free, no ads, no sign-in, nothing to install. Simply tap each one to play.' SnapHit Studios links to the studio with ?from=portfolio, in a new tab, matching the cabinets.
+- Removed the 'The cabinets' section heading and its 'three live games' label. The cabinets now follow straight from the lede.
+- Removed the closing paragraph and its wrapper, so the studio card is the last thing before the footer. That was the page's only in-body novlr link; novlr is still in the nav and the footer. Spacing after the card was measured rather than assumed: 93px at 390px and 154px at 1280px between the card and the footer, then the footer's own spectrum bar, so the join still reads as deliberate and nothing collapsed.
+- No dead CSS from any of the four removals: .eyebrow is on 32 pages, .prose on 30, .section-head on 2.
+- Note for the next copy pass: the lede no longer states how many games there are, so the scoreboard's GAMES SHIPPED 04 is now the only count on the page and nothing contradicts it. An earlier draft of this lede said 'released three', which would have collided with that 04. If a count goes back into the lede, it has to agree with the scoreboard or the scoreboard has to move with it.
+- Verified in Chromium at 390px and 1280px: no horizontal overflow, no console errors, heading sits correctly with no eyebrow, the studio link resolves with target and rel intact. With JavaScript off the heading, the lede link, all three cabinets and the studio card still render. Hero game, clearing gate, cabinets, studio card, dark treatment and reader pill suppression all untouched.
