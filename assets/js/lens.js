@@ -42,7 +42,7 @@
 
   function bytes(n) {
     if (typeof n !== "number" || !isFinite(n) || n <= 0) return null;
-    return n < 1024 ? n + " B" : (n / 1024).toFixed(1) + " kB";
+    return n < 1000 ? n + " B" : (n / 1000).toFixed(1) + " kB";   /* kB is decimal */
   }
 
   /* Keep the host and the last path segment, drop the middle. */
@@ -154,6 +154,19 @@
     return dd;
   }
 
+  /* The same level check across the whole document, so the card can name what its own
+     scope leaves out instead of appearing to have found nothing anywhere. */
+  function outsideSkips() {
+    var all = document.querySelectorAll("h1,h2,h3,h4,h5,h6");
+    var prev = 0, n = 0;
+    for (var i = 0; i < all.length; i++) {
+      var lv = +all[i].tagName.slice(1);
+      if (prev && lv > prev + 1 && !main.contains(all[i])) n++;
+      prev = lv;
+    }
+    return n;
+  }
+
   function buildHead() {
     var outer = el("div", "lens-head");
     var card = el("div", "lens-head-in");
@@ -195,14 +208,19 @@
 
     var total = audit.noAlt + audit.emptyAlt + audit.skips + audit.vague;
     var a = el("div", "lens-ld");
-    a.appendChild(el("b", null, "Audit of this page"));
+    a.appendChild(el("b", null, "Audit of main"));
     var al = el("dl", "lens-k");
     kv(al, "images without alt", String(audit.noAlt));
     kv(al, "empty alt, undeclared", String(audit.emptyAlt));
     kv(al, "heading level skips", String(audit.skips));
     kv(al, "vague link text", String(audit.vague));
-    var v = kv(al, "result", total === 0 ? "nothing found in main" : total + " to look at");
+    var v = kv(al, "result", total === 0 ? "nothing found" : total + " to look at");
     if (total === 0) v.className = "lens-clean";
+    /* Scoped to main, so say so, and count what falls outside it rather than let a clean
+       result imply a clean document. The sitewide footer runs h4 under an h2. */
+    var outside = outsideSkips();
+    kv(al, "outside main", outside === 0 ? "nothing" :
+       outside + " heading skip" + (outside === 1 ? "" : "s") + " in the sitewide chrome");
     a.appendChild(al);
     card.appendChild(a);
 
@@ -272,8 +290,17 @@
 
   var head = buildHead();
   var resp = buildResp();
-  main.insertBefore(head.outer, main.firstChild);
-  main.insertBefore(resp.outer, main.firstChild);
+  /* Wrapped, because every other block on this page lives in a .wrap and main itself has no
+     width or padding of its own. Inserted bare they ran the full 1280px and the metadata
+     values broke mid word against both screen edges at 390px. */
+  function wrapped(node) {
+    var w = el("div", "wrap");
+    w.appendChild(node);
+    node.__wrap = w;
+    return w;
+  }
+  main.insertBefore(wrapped(head.outer), main.firstChild);
+  main.insertBefore(wrapped(resp.outer), main.firstChild);
 
   /* ---------------- the wave ----------------
      Index the content blocks in document order and hand each one its place in the wave, so
@@ -288,21 +315,49 @@
   });
 
   /* Card heights are measured, not guessed, so the reveal interpolates to the exact size. */
+  /* offsetHeight stops at the border box, but the card carries a bottom margin that the
+     outer element's overflow:hidden would otherwise crop. */
+  function cardH(card) {
+    var m = parseFloat(getComputedStyle(card).marginBottom) || 0;
+    return card.offsetHeight + m;
+  }
+
   function measure() {
-    head.outer.style.setProperty("--lens-head-h", head.card.offsetHeight + "px");
-    resp.outer.style.setProperty("--lens-resp-h", resp.card.offsetHeight + "px");
+    head.outer.style.setProperty("--lens-head-h", cardH(head.card) + "px");
+    resp.outer.style.setProperty("--lens-resp-h", cardH(resp.card) + "px");
     /* Twelve excerpts appearing at a threshold is a jump cut, and display cannot be
        interpolated. So their real heights are measured here and the reveal is driven by the
        same value as everything else, which makes the unfolding continuous and lets a drag
-       hold it half open. Measured with the page briefly laid out, then put straight back. */
+       hold it half open.
+
+       Measured IN FLOW, in the same box that will render. Taking the measurement out of flow
+       with position:absolute and width:100% resolved the width against .sampler-stage's
+       padding box rather than the content box the excerpt actually occupies: 348px against
+       306px at 390px wide, which under-measured by 132px and clipped every excerpt mid
+       sentence. box-sizing is border-box globally, so the measuring class also carries the
+       open state's own padding and border, or that chrome eats a further 26.6px of text. */
+    /* Forced inline and important, because the rules being overridden here are five classes
+       deep and a measuring class simply lost to them: the measurement then read back the
+       already driven height and compounded the very clipping it was meant to remove. */
+    var MEASURE = [["display", "flex"], ["flex-direction", "column"], ["height", "auto"],
+                   ["min-height", "0"], ["overflow", "visible"], ["position", "static"],
+                   ["padding-top", "1.6rem"], ["border-top", "1px solid transparent"],
+                   /* with the annotations at full width: the injected heading tag and link
+                      destinations grow with --g, and on the longest heading that tag is what
+                      tips it onto a second line. Measured collapsed, the box is a line short
+                      exactly when the annotation arrives to fill it. */
+                   ["--g", "1"]];
     spages.forEach(function (p) {
-      if (p.classList.contains("cur")) { p.style.removeProperty("--sp-h"); return; }
-      var prev = p.getAttribute("style") || "";
-      p.style.cssText = prev + ";display:flex;flex-direction:column;height:auto;" +
-                        "position:absolute;visibility:hidden;width:100%";
-      var h = p.offsetHeight;
-      p.setAttribute("style", prev);
-      p.style.setProperty("--sp-h", h + "px");
+      MEASURE.forEach(function (d) { p.style.setProperty(d[0], d[1], "important"); });
+    });
+    spages.forEach(function (p) {
+      /* every panel, including the current one: the picker moves .cur on arrow keys as well
+         as clicks, and a panel that became non current without a measurement would collapse
+         to a 27px sliver of its own padding. */
+      p.style.setProperty("--sp-h", p.offsetHeight + "px");
+    });
+    spages.forEach(function (p) {
+      MEASURE.forEach(function (d) { p.style.removeProperty(d[0]); });
     });
   }
 
@@ -318,8 +373,10 @@
   var thumb = el("div", "lens-thumb");
   thumb.setAttribute("aria-hidden", "true");
   track.appendChild(thumb);
-  STATES.forEach(function (name) {
-    var s = el("span", "lens-stop");
+  STATES.forEach(function (name, i) {
+    /* Numbered explicitly. nth-child counted the thumb, which is appended first, so the three
+       dots were each one reader out and the AI dot fell off the end into the grey fallback. */
+    var s = el("span", "lens-stop lens-stop-" + i);
     s.setAttribute("aria-hidden", "true");
     s.appendChild(el("i", "lens-dot"));
     s.appendChild(document.createTextNode(name));
@@ -331,7 +388,10 @@
 
   /* ---------------- state ---------------- */
 
-  var value = 0, raf = 0, anchor = null, anchorTop = 0;
+  var value = 0, raf = 0, settleRaf = 0, anchor = null, anchorTop = 0;
+  var gen = 0;              /* one ticket per gesture, so stale chains cannot interfere */
+  var cardsOpen = true, spoken = "";
+  var target = 0;           /* where the current tween is going, which is what a key press steps from */
 
   /* The reader must not be moved. Before each write, note where a block currently sits in the
      viewport; after it, put it back. Thirteen excerpts opening above the fold would otherwise
@@ -346,8 +406,21 @@
        happens to overlap the viewport. Pinning an outer block leaves everything that grows
        inside it free to push the words the reader is on: measured at 405px entering the AI
        state. elementFromPoint lands on the paragraph itself. */
-    var y = Math.min(140, innerHeight * 0.22);
-    var e = document.elementFromPoint(Math.round(innerWidth / 2), Math.round(y));
+    var x = Math.round(innerWidth / 2), y = Math.round(Math.min(140, innerHeight * 0.22));
+    /* The text under that point, not the box painted there. elementFromPoint returns the
+       article itself when the pixel lands on its padding, and pinning the article holds the
+       article while its own headings and font grow inside it, which is the same failure as
+       pinning the sampler. The caret APIs resolve to the actual text node. */
+    var e = null, r;
+    if (document.caretRangeFromPoint) {
+      r = document.caretRangeFromPoint(x, y);
+      e = r && r.startContainer;
+    } else if (document.caretPositionFromPoint) {
+      r = document.caretPositionFromPoint(x, y);
+      e = r && r.offsetNode;
+    }
+    if (e && e.nodeType === 3) e = e.parentElement;
+    if (!e || !main.contains(e)) e = document.elementFromPoint(x, y);
     while (e && e !== document.body && !main.contains(e)) e = e.parentElement;
     if (!e || !main.contains(e)) {
       var els = main.querySelectorAll("p, li, h1, h2, h3, figure");
@@ -368,14 +441,31 @@
     body.classList.toggle("lens-goog", isGoog);
     body.classList.toggle("lens-ai", isAi);
     if (isAi !== wasAi) measure();       /* the snap changes the cards' natural height */
+    /* Collapsed to nothing but still in the accessibility tree, the two cards were read out
+       before the page in the person state: 29 static text nodes, 1,158 characters, in a state
+       where the feature has not been used at all. They come back the moment they open. */
+    var open = v > 0.02;
+    if (open !== cardsOpen) {
+      cardsOpen = open;
+      [head.outer, resp.outer].forEach(function (c) {
+        if (open) c.removeAttribute("aria-hidden"); else c.setAttribute("aria-hidden", "true");
+      });
+    }
+
+    /* Announced on arrival at a stop, not on every one of the roughly 37 frames of a
+       transition, which gave a screen reader a stream of values nobody asked for. */
     var near = Math.round(v);
-    track.setAttribute("aria-valuenow", String(v.toFixed(2)));
-    track.setAttribute("aria-valuetext",
-      Math.abs(v - near) < 0.02 ? STATES[near]
-        : "between " + STATES[Math.floor(v)] + " and " + STATES[Math.ceil(v)]);
-    Array.prototype.forEach.call(stops, function (s, i) {
-      s.setAttribute("aria-pressed", i === near ? "true" : "false");
-    });
+    var settled = Math.abs(v - near) < 0.02;
+    var word = settled ? STATES[near]
+      : "between " + STATES[Math.floor(v)] + " and " + STATES[Math.ceil(v)];
+    if (word !== spoken) {
+      spoken = word;
+      track.setAttribute("aria-valuenow", String(settled ? near : v.toFixed(2)));
+      track.setAttribute("aria-valuetext", word);
+      Array.prototype.forEach.call(stops, function (s, i) {
+        s.setAttribute("aria-pressed", i === near ? "true" : "false");
+      });
+    }
     if (anchor) {
       /* Pinned to where the anchor started, not nudged by this frame's delta. A per frame
          delta lets error accumulate: anything that moves the page between two frames, a font
@@ -394,31 +484,41 @@
   var root = document.documentElement;
   function holdScroll(on) { root.classList.toggle("lens-anchoring", on); }
 
-  function tweenTo(target) {
+  function tweenTo(to) {
     cancelAnimationFrame(raf);
+    cancelAnimationFrame(settleRaf);
+    var ticket = ++gen;
+    target = to;
     grabAnchor();
     holdScroll(true);
-    if (reduced) { apply(target); settle(2); return; }
+    if (reduced) { apply(to); settle(2, ticket); return; }
     var from = value, t0 = performance.now(), dur = 620;
     raf = requestAnimationFrame(function step(now) {
+      if (ticket !== gen) return;
       var p = Math.min(1, (now - t0) / dur);
       var e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-      apply(from + (target - from) * e);
+      apply(from + (to - from) * e);
       if (p < 1) raf = requestAnimationFrame(step);
-      else settle(3);
+      else settle(3, ticket);
     });
   }
 
   /* A few frames after the value lands, hold the anchor again. The snap into monospace
      reflows the whole document and some of that arrives a frame late, so the last correction
      inside the tween can miss it. These put the reader back on the line they were reading. */
-  function settle(n) {
+  /* Every gesture takes a ticket. A settle chain left over from the previous one would
+     otherwise reach zero in the middle of the next tween and run anchor = null with
+     holdScroll(false), switching anchoring off and smooth scrolling back on mid transition:
+     measured at 216px of drift when a second stop was tapped about 620ms after the first. */
+  function settle(n, ticket) {
+    if (ticket !== gen) return;
     if (!anchor || n <= 0) { anchor = null; holdScroll(false); return; }
-    requestAnimationFrame(function () {
+    settleRaf = requestAnimationFrame(function () {
+      if (ticket !== gen) return;
       if (!anchor) { holdScroll(false); return; }
       var d = anchor.getBoundingClientRect().top - anchorTop;
       if (Math.abs(d) > 0.5) window.scrollBy({ top: d, left: 0, behavior: "instant" });
-      settle(n - 1);
+      settle(n - 1, ticket);
     });
   }
 
@@ -439,6 +539,8 @@
     ctl.classList.add("dragging");
     track.setPointerCapture(e.pointerId);
     cancelAnimationFrame(raf);
+    cancelAnimationFrame(settleRaf);
+    gen++;
     grabAnchor();
     holdScroll(true);
     e.preventDefault();
@@ -448,8 +550,9 @@
     if (!dragging) return;
     if (Math.abs(e.clientX - downX) > 3) moved = true;
     if (!moved) return;
-    if (reduced) { apply(Math.round(valueAt(e.clientX))); return; }
-    apply(valueAt(e.clientX));
+    if (reduced) { target = Math.round(valueAt(e.clientX)); apply(target); return; }
+    target = valueAt(e.clientX);
+    apply(target);
   });
 
   function endDrag(e) {
@@ -467,7 +570,10 @@
   });
 
   track.addEventListener("keydown", function (e) {
-    var k = e.key, near = Math.round(value), next = null;
+    /* Stepped from the tween's destination, not its live value. Reading the live value meant
+       a second press inside the 620ms tween recomputed the same nearest stop and went
+       nowhere: two quick presses landed on Google, and holding the key never reached AI. */
+    var k = e.key, near = Math.round(target), next = null;
     if (k === "ArrowRight" || k === "ArrowUp") next = Math.min(2, near + 1);
     else if (k === "ArrowLeft" || k === "ArrowDown") next = Math.max(0, near - 1);
     else if (k === "Home") next = 0;
@@ -484,5 +590,9 @@
   measure();
   apply(0);                              /* every visitor arrives in the person state */
   addEventListener("resize", measure, { passive: true });
+  /* Measured again once the webfonts are in. measure() first runs at DOMContentLoaded, when
+     the page is still laid out in fallback metrics, and every height taken then is wrong by
+     however much Instrument Sans and JetBrains Mono differ from it. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure).catch(function () {});
   if (picker) picker.addEventListener("click", function () { setTimeout(measure, 0); });
 })();

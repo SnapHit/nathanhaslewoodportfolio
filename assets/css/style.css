@@ -1182,11 +1182,12 @@ html.lens-anchoring{scroll-behavior:auto}
 /* Height is measured from the live card by lens.js and written back as a pixel value, so it
    interpolates exactly instead of being guessed at. */
 .lens-head,.lens-resp{overflow:hidden;will-change:height}
+.lens-host.lens-open .lens-head,.lens-host.lens-open .lens-resp{margin-bottom:calc(var(--g) * 1.6rem)}
 .lens-head{height:calc(var(--g) * var(--lens-head-h,0px))}
 .lens-resp{height:calc(var(--ap) * var(--lens-resp-h,0px))}
 .lens-head-in,.lens-resp-in{
-  opacity:var(--g);border:1px solid var(--line);border-radius:14px;
-  padding:1.1rem 1.3rem;margin:0 0 1.6rem;background:#fff;
+  opacity:var(--g);border:1px solid var(--line);
+  padding:1.1rem 1.3rem;margin:0;background:#fff;
   font-family:var(--mono);font-size:.78rem;line-height:1.7;
 }
 .lens-resp-in{opacity:var(--ap)}
@@ -1215,16 +1216,19 @@ html.lens-anchoring{scroll-behavior:auto}
 .lens-host.lens-ai h1,.lens-host.lens-ai h2,.lens-host.lens-ai h3,
 .lens-host.lens-ai .sig,.lens-host.lens-ai .spage h3{font-family:var(--mono);font-weight:500;letter-spacing:0}
 /* Decoration retreats continuously rather than switching off. */
-.lens-host .sampler-stage,.lens-host .callout,.lens-host .lens-head-in,.lens-host .lens-resp-in{
-  border-radius:calc((1 - var(--ap)) * 16px);
-}
-.lens-host .sampler-stage::before{opacity:calc(1 - var(--ap))}
+/* Each keeps its own resting radius. One shared 16px silently rounded .callout up from its
+   own 12px the moment lens.js ran, in the untouched person state. */
+.lens-host .sampler-stage{border-radius:calc((1 - var(--a)) * 16px)}
+.lens-host .callout{border-radius:calc((1 - var(--a)) * 12px)}
+.lens-host .lens-head-in,.lens-host .lens-resp-in{border-radius:calc((1 - var(--ap)) * 14px)}
+.lens-host .sampler-stage::before{opacity:calc(1 - var(--a))}
 .lens-host .sampler-stage,.lens-host .callout{
-  background-color:color-mix(in srgb,#fff calc((1 - var(--ap)) * 100%),transparent)}
-.lens-host .sampler-nav button.on{
-  background:color-mix(in srgb,var(--ink) calc((1 - var(--ap)) * 100%),transparent);
-  color:color-mix(in srgb,var(--paper) calc((1 - var(--ap)) * 100%),var(--ink))}
-.lens-host .sampler-ctl .dots{opacity:calc(1 - var(--ap))}
+  background-color:color-mix(in srgb,#fff calc((1 - var(--a)) * 100%),transparent)}
+/* Text and background switch together at the threshold rather than cross fading past each
+   other. Ramping them from opposite ends made both land on rgb(137,135,131) at the midpoint
+   of the AI band, so the chapter name disappeared into its own pill at 1:1. */
+.lens-host.lens-ai .sampler-nav button.on{background:none;color:var(--ink)}
+.lens-host .sampler-ctl .dots{opacity:calc(1 - var(--a))}
 
 /* Every excerpt at once. The reader sees one chapter, both machines receive all thirteen,
    because all thirteen are in the HTML. That difference is the whole demonstration.
@@ -1240,10 +1244,15 @@ html.lens-anchoring{scroll-behavior:auto}
   border-top:1px dashed color-mix(in srgb,var(--ink-2) calc(var(--g) * 45%),transparent);
 }
 .lens-host.lens-open .sampler-stage{overflow:visible}
+
 /* The picker keeps working, but it stops looking like a control it is not: in the machine
    states every panel is already open, so the buttons name themselves as buttons instead. */
-.lens-navnote{
-  grid-column:1/-1;overflow:hidden;font-family:var(--mono);font-size:.72rem;line-height:1.6;
+/* display:none at rest, because grid still allocates a row and its 1.6rem gap for a zero
+   height child, which moved the sampler on a page that is meant to be untouched at lens 0. */
+.lens-navnote{display:none}
+.lens-host.lens-open .lens-navnote{
+  display:block;grid-column:1/-1;overflow:hidden;
+  font-family:var(--mono);font-size:.72rem;line-height:1.6;
   color:var(--ink-2);opacity:var(--g);
   max-height:calc(var(--g) * 6rem);margin-bottom:calc(var(--g) * .9rem);
 }
@@ -1298,9 +1307,9 @@ html.lens-anchoring{scroll-behavior:auto}
 .lens-stop:focus-visible{outline:2px solid var(--lens-hue);outline-offset:2px}
 .lens-dot{display:inline-block;width:.5em;height:.5em;border-radius:50%;margin-right:.45em;
   vertical-align:middle;background:var(--panel-dim)}
-.lens-stop:nth-child(1) .lens-dot{background:var(--signal-b)}
-.lens-stop:nth-child(2) .lens-dot{background:var(--index-b)}
-.lens-stop:nth-child(3) .lens-dot{background:var(--ok-b)}
+.lens-stop-0 .lens-dot{background:var(--signal-b)}
+.lens-stop-1 .lens-dot{background:var(--index-b)}
+.lens-stop-2 .lens-dot{background:var(--ok-b)}
 @media (max-width:420px){
   .lens-stop{font-size:.64rem;padding:.5rem .1rem}
   .lens-track{width:min(17rem,80vw)}
