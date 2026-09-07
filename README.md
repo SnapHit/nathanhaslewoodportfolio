@@ -1,4 +1,4 @@
-# nathanhaslewood.com.au · v1.20.1
+# nathanhaslewood.com.au · v1.20.2
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
@@ -244,3 +244,11 @@ No email address anywhere by design. All contact routes to LinkedIn.
 - Also added: a re-measure once webfonts are ready. The first measurement runs at DOMContentLoaded while the page is still in fallback metrics, which would have been wrong in production even though the sandbox blocks Google Fonts and hid it.
 - Correction to the v1.20.0 note on scroll position. Holding one paragraph across a font change is not the right measure, because text below the reader genuinely reflows when the font changes and no anchor can prevent that. Measured properly, by pinning the text under the reader's eye and tracking that same line: 0px drift and 0px excursion across nine consecutive state changes at 390px, 0px final and 1px maximum at 1280px.
 - Re-verified after the fixes: no clipping, no horizontal overflow, no console errors, control fixed at 16px in all three states, path independent, reduced motion instant, JavaScript off completely inert, and all eleven other pages carry no lens markup.
+
+## v1.20.2
+- Alignment fix inside the lens control on /book/. Two rules, CSS only, no behaviour touched.
+- The dot and label in each of the three stops sat hard against the left of their segment. The stops are grid items, so they blockify and inherit text-align:start, while the thumb covers the whole segment: the pair therefore sat well left of the pill it was meant to sit inside. Worst on AI, where the short label left about 30px of empty pill to its right. Measured before: the content centre fell 18px, 19px and 32px left of the thumb centre at 390px, and 19px, 19px and 34px at 1280px.
+- Fixed with flex centring on .lens-stop and the dot and label separated by a gap rather than a margin, so the two centre as one unit and the dot travels with the words. The dot keeps its own size and colour rules.
+- Geometry proven unchanged, which was the constraint: track 272px at 390px and 304px at 1280px, stop width 91px and 101px, stop positions [59,150,240] and [488,589,691], thumb width and x identical at all three stops. Only the alignment of content inside each stop moved. Content offset from the thumb centre is now 0px in all three states at both widths, and all three stops read 0px from their own segment centre, active or not.
+- Verified: the thumb still sits exactly where the value says at 0, 0.5, 1, 1.5 and 2 during a real pointer drag, the keyboard still reaches Person, Google and AI, no horizontal overflow at either width, no console errors, and all six screenshots checked by eye.
+- Note on the fix itself: a text-indent was added first to pull back the trailing letter-spacing, then measured, found to change the result by 0.01px, and removed. A property that does nothing is worse than no property when it ships with a comment claiming it does something.
