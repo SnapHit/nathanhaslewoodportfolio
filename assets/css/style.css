@@ -1085,3 +1085,223 @@ body.arcade ::selection{color:#FBFAF6}
     radial-gradient(120% 70% at 50% 0%, rgba(26,134,196,.13), transparent 62%),
     linear-gradient(180deg,#04070e 0%,#060d18 40%,#04070e 100%);
 }
+
+/* ---------- v1.20: the machine reader lens (pilot, /book/ only) ---------- */
+/* The page becomes its own machine reading in place, rather than a modal describing it.
+   One registered custom property drives everything. 0 person, 1 Google, 2 AI. Registering
+   it makes it a real number the browser can interpolate, so a half drag is a half
+   transformed page rather than a jump cut.
+
+   Scoped under .lens-host, which lens.js adds to <body>. With JavaScript off the class is
+   never added, no control is built, and every rule below is inert. lens.js loads on /book/
+   and nowhere else, so this cannot reach another page even by accident. */
+@property --lens{syntax:"<number>";initial-value:0;inherits:true}
+@property --li{syntax:"<number>";initial-value:0;inherits:false}
+@property --g{syntax:"<number>";initial-value:0;inherits:true}
+@property --a{syntax:"<number>";initial-value:0;inherits:true}
+@property --lens-hue{syntax:"<color>";initial-value:#F0561D;inherits:true}
+
+/* While the lens is moving, the sitewide smooth scroll is suspended: the anchor corrections
+   below are meant to be instant, and animating them means they never land. */
+html.lens-anchoring{scroll-behavior:auto}
+.lens-host{
+  --lens-spread:.30;              /* how much of a band the document-order wave consumes */
+  --li:0;
+  --g:clamp(0, calc(var(--lens) * (1 + var(--lens-spread))), 1);
+  --a:clamp(0, calc((var(--lens) - 1) * (1 + var(--lens-spread))), 1);
+  --ap:clamp(0, calc(var(--lens) - 1), 1);   /* unstaggered ai progress, for page wide work */
+  /* signal to index across the first band, index to ok across the second */
+  --lens-hue:color-mix(in oklab,
+    color-mix(in oklab, var(--signal-b), var(--index-b) calc(clamp(0, var(--lens), 1) * 100%)),
+    var(--ok-b) calc(clamp(0, calc(var(--lens) - 1), 1) * 100%));
+}
+/* Each indexed block computes its own place in the wave. At lens 0.5 the top of the page is
+   65% transformed and the bottom 35%, and that state holds still while a drag holds still:
+   the stagger is a property of the value, not of an animation. */
+.lens-host [data-lens-i]{
+  --g:clamp(0, calc(var(--lens) * (1 + var(--lens-spread)) - var(--li) * var(--lens-spread)), 1);
+  --a:clamp(0, calc((var(--lens) - 1) * (1 + var(--lens-spread)) - var(--li) * var(--lens-spread)), 1);
+}
+@media (prefers-reduced-motion:reduce){ .lens-host{--lens-spread:0} }
+
+/* Colour recedes. The filter sits on content blocks, never on an ancestor of the control:
+   a filter makes position:fixed resolve against that element, which would let the control
+   scroll away mid transition. */
+.lens-host [data-lens-i]{filter:grayscale(var(--g))}
+.lens-host header.top,.lens-host footer.site{filter:grayscale(var(--ap))}
+
+/* The one uninterpolatable moment. Font family and column count snap at the middle of the
+   AI band, so the page dips through that instant and comes back: a parabola peaking exactly
+   where the snap happens, which reads as a cross fade rather than a flicker. */
+.lens-host main{opacity:calc(1 - .45 * 4 * var(--ap) * (1 - var(--ap)))}
+@media (prefers-reduced-motion:reduce){ .lens-host main{opacity:1} }
+
+/* ---- heading tags, read from the live tagName ---- */
+.lens-tag{
+  display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:baseline;
+  font-family:var(--mono);font-weight:500;letter-spacing:.04em;
+  font-size:.62em;line-height:1;color:var(--index);
+  max-width:calc(var(--g) * 7ch);opacity:var(--g);
+  margin-right:calc(var(--g) * .55ch);
+}
+.lens-host.lens-ai .lens-tag{color:inherit}
+
+/* ---- link destinations, revealed inline ---- */
+/* currentColor, not a fixed blue. The first link on this page is a solid orange button with
+   white text, and a blue annotation inside it measured 1.30:1. Inheriting the link's own colour
+   means the destination is always as legible as the link it belongs to; the monospace face and
+   the smaller size are what mark it as annotation. */
+.lens-href{
+  display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:baseline;
+  font-family:var(--mono);font-size:.74em;color:currentColor;
+  max-width:calc(var(--g) * 44ch);opacity:var(--g);
+  margin-left:calc(var(--g) * .5ch);
+}
+
+/* ---- imagery gives way to its own alt text ---- */
+.lens-fig{position:relative;display:block}
+.lens-fig > img{opacity:calc(1 - var(--g))}
+.lens-alt{
+  position:absolute;inset:0;display:grid;align-content:center;
+  padding:1rem 1.2rem;opacity:var(--g);pointer-events:none;
+  font-family:var(--mono);font-size:.8rem;line-height:1.6;color:var(--ink);
+  /* The panel reaches full opacity well before the text does, so the alt words are never
+     read against the photograph they are replacing, at any point in the drag. */
+  background:color-mix(in srgb,var(--paper) calc(clamp(0,calc(var(--g) * 2.4),1) * 100%),transparent);
+  border:1px dashed color-mix(in srgb,var(--ink-2) calc(var(--g) * 60%),transparent);
+  border-radius:10px;
+}
+.lens-alt b{font-weight:500;color:var(--ink-2);display:block;margin-bottom:.35em;
+  font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+/* In the AI state the picture is gone entirely and the alt text is simply a line of the
+   document, so the box collapses to the height of the words it contains. */
+.lens-host.lens-ai .lens-fig > img{height:0;min-height:0}
+.lens-host.lens-ai .lens-alt{position:static;border:0;border-radius:0;background:none;padding:.2rem 0}
+
+/* ---- the invisible head material, risen into the page ---- */
+/* Height is measured from the live card by lens.js and written back as a pixel value, so it
+   interpolates exactly instead of being guessed at. */
+.lens-head,.lens-resp{overflow:hidden;will-change:height}
+.lens-head{height:calc(var(--g) * var(--lens-head-h,0px))}
+.lens-resp{height:calc(var(--ap) * var(--lens-resp-h,0px))}
+.lens-head-in,.lens-resp-in{
+  opacity:var(--g);border:1px solid var(--line);border-radius:14px;
+  padding:1.1rem 1.3rem;margin:0 0 1.6rem;background:#fff;
+  font-family:var(--mono);font-size:.78rem;line-height:1.7;
+}
+.lens-resp-in{opacity:var(--ap)}
+.lens-host.lens-ai .lens-head-in,.lens-host.lens-ai .lens-resp-in{
+  border-color:color-mix(in srgb,var(--ink-2) 40%,transparent);border-radius:0;background:none}
+.lens-k{display:grid;grid-template-columns:minmax(9rem,auto) 1fr;gap:.15rem .9rem}
+.lens-k dt{color:var(--ink-2);letter-spacing:.06em;text-transform:uppercase;font-size:.68rem;margin:0}
+.lens-k dd{margin:0;word-break:break-word}
+.lens-cap{display:block;margin:0 0 .8rem;font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--index)}
+.lens-resp-in .lens-cap{color:var(--ok)}
+.lens-host.lens-ai .lens-cap{color:inherit}
+.lens-ld{margin:.5rem 0 0;padding:.7rem .9rem;border-left:2px solid var(--index-b);
+  background:color-mix(in srgb,var(--index-b) 6%,transparent)}
+.lens-host.lens-ai .lens-ld{border-left-color:currentColor;background:none}
+.lens-ld b{font-weight:500;color:var(--ink-2)}
+
+/* ---- the AI state: layout falls away and leaves the text in document order ---- */
+.lens-host.lens-ai main{font-family:var(--mono)}
+.lens-host.lens-ai main .wrap{max-width:74ch}
+.lens-host.lens-ai .sampler{display:block}
+.lens-host.lens-ai .sampler-nav{position:static;flex-direction:column;max-height:none;overflow:visible}
+.lens-host.lens-ai .sampler-stage{display:block;min-height:0}
+.lens-host.lens-ai .pagehead .headgrid{display:block}
+.lens-host.lens-ai .prose,.lens-host.lens-ai .spage p,.lens-host.lens-ai .spage ul{max-width:none}
+.lens-host.lens-ai h1,.lens-host.lens-ai h2,.lens-host.lens-ai h3,
+.lens-host.lens-ai .sig,.lens-host.lens-ai .spage h3{font-family:var(--mono);font-weight:500;letter-spacing:0}
+/* Decoration retreats continuously rather than switching off. */
+.lens-host .sampler-stage,.lens-host .callout,.lens-host .lens-head-in,.lens-host .lens-resp-in{
+  border-radius:calc((1 - var(--ap)) * 16px);
+}
+.lens-host .sampler-stage::before{opacity:calc(1 - var(--ap))}
+.lens-host .sampler-stage,.lens-host .callout{
+  background-color:color-mix(in srgb,#fff calc((1 - var(--ap)) * 100%),transparent)}
+.lens-host .sampler-nav button.on{
+  background:color-mix(in srgb,var(--ink) calc((1 - var(--ap)) * 100%),transparent);
+  color:color-mix(in srgb,var(--paper) calc((1 - var(--ap)) * 100%),var(--ink))}
+.lens-host .sampler-ctl .dots{opacity:calc(1 - var(--ap))}
+
+/* Every excerpt at once. The reader sees one chapter, both machines receive all thirteen,
+   because all thirteen are in the HTML. That difference is the whole demonstration.
+
+   They unfold rather than appear. display cannot be interpolated, so the panels are laid out
+   as soon as the control leaves rest and their real measured height is what follows --g. A
+   drag held half way holds them half open. At exactly 0 .lens-open is absent, the original
+   display:none stands, and the person state is the page as it was. */
+.lens-host.lens-open .sampler.ready .spage:not(.cur){
+  display:flex;flex-direction:column;flex:none;min-height:0;overflow:hidden;
+  height:calc(var(--g) * var(--sp-h,0px));opacity:var(--g);
+  margin-top:calc(var(--g) * 1.6rem);padding-top:calc(var(--g) * 1.6rem);
+  border-top:1px dashed color-mix(in srgb,var(--ink-2) calc(var(--g) * 45%),transparent);
+}
+.lens-host.lens-open .sampler-stage{overflow:visible}
+/* The picker keeps working, but it stops looking like a control it is not: in the machine
+   states every panel is already open, so the buttons name themselves as buttons instead. */
+.lens-navnote{
+  grid-column:1/-1;overflow:hidden;font-family:var(--mono);font-size:.72rem;line-height:1.6;
+  color:var(--ink-2);opacity:var(--g);
+  max-height:calc(var(--g) * 6rem);margin-bottom:calc(var(--g) * .9rem);
+}
+
+/* ---- the audit layer ---- */
+/* An annotator that can only show success is decoration. These are the failures, in the
+   signal colour, and nothing else on the page is allowed to use it in a machine state. */
+.lens-flag{
+  display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:baseline;
+  font-family:var(--mono);font-size:.68em;line-height:1.5;
+  color:#fff;background:var(--signal);border-radius:4px;
+  max-width:calc(var(--g) * 40ch);opacity:var(--g);
+  padding:0 calc(var(--g) * .45em);margin-left:calc(var(--g) * .4ch);
+}
+.lens-flag.warn{background:transparent;color:var(--signal);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--signal) calc(var(--g) * 100%),transparent)}
+.lens-clean{color:var(--ok)}
+
+/* ---- the control ---- */
+/* A direct child of <body>, deliberately: no ancestor carries a filter, so position:fixed
+   resolves against the viewport and the control cannot scroll away mid transition. */
+.lens-ctl{
+  position:fixed;z-index:80;left:50%;translate:-50% 0;
+  bottom:max(16px,env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:.55rem;
+  padding:.4rem;border-radius:999px;
+  background:color-mix(in srgb,var(--panel) 94%,transparent);
+  border:1px solid var(--panel-2);
+  box-shadow:0 18px 40px -18px rgba(0,0,0,.7);
+  touch-action:none;user-select:none;
+}
+.lens-track{
+  position:relative;display:grid;grid-template-columns:repeat(3,1fr);
+  width:min(19rem,74vw);border-radius:999px;cursor:grab;
+}
+.lens-ctl.dragging .lens-track{cursor:grabbing}
+/* The thumb is the object you move. It rides the same value everything else reads. */
+.lens-thumb{
+  position:absolute;top:0;bottom:0;width:calc(100% / 3);
+  left:calc(var(--lens) * 100% / 3);
+  border-radius:999px;pointer-events:none;
+  background:color-mix(in srgb,var(--lens-hue) 26%,var(--panel));
+  box-shadow:inset 0 0 0 1px var(--lens-hue),0 2px 10px -2px var(--lens-hue);
+}
+.lens-stop{
+  position:relative;z-index:1;appearance:none;background:none;border:0;cursor:pointer;
+  padding:.5rem .2rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;
+  color:var(--panel-dim);white-space:nowrap;border-radius:999px;
+}
+.lens-stop[aria-pressed="true"]{color:#fff}
+.lens-track:focus-visible{outline:2px solid var(--lens-hue);outline-offset:4px}
+.lens-stop:focus-visible{outline:2px solid var(--lens-hue);outline-offset:2px}
+.lens-dot{display:inline-block;width:.5em;height:.5em;border-radius:50%;margin-right:.45em;
+  vertical-align:middle;background:var(--panel-dim)}
+.lens-stop:nth-child(1) .lens-dot{background:var(--signal-b)}
+.lens-stop:nth-child(2) .lens-dot{background:var(--index-b)}
+.lens-stop:nth-child(3) .lens-dot{background:var(--ok-b)}
+@media (max-width:420px){
+  .lens-stop{font-size:.64rem;padding:.5rem .1rem}
+  .lens-track{width:min(17rem,80vw)}
+}
