@@ -22,7 +22,8 @@
    formation at the thresholds. */
 (function () {
   var hero = document.querySelector('.home .hero');
-  if (!hero) return;
+  var main = document.getElementById('main');
+  if (!hero || !main) return;
   if (typeof THREE === 'undefined') return;
 
   var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -54,16 +55,18 @@
   var host = document.createElement('div');
   host.className = 'lens-field';
   host.setAttribute('aria-hidden', 'true');
-  /* The veil is the v1.11.0 hero overlay generalised. That overlay lived on .hero-media and
-     painted OVER the canvas because the canvas was inside it; moving the canvas to a body level
-     layer left the overlay underneath, which is what let the field blaze straight through the
-     hero copy. It is a separate layer now, after the field in the DOM so it paints above it,
-     and it follows the same shape: heavy over the text column, open on the right. */
+  /* The veil. A CHILD of the field, after the canvas, so it paints over the particles and
+     inherits the field's clip-path: it cannot darken anywhere the field is absent. It was a
+     body level sibling for one version, carrying its own copy of the spill geometry, and the
+     two copies disagreed badly enough to black out the page. The shape it carries is the shape
+     of the text, which scrolls, so the mask is sized to the document and offset by the scroll
+     position instead. */
   var veil = document.createElement('div');
   veil.className = 'lens-veil';
   veil.setAttribute('aria-hidden', 'true');
   document.body.appendChild(host);
   host.appendChild(canvas);
+  host.appendChild(veil);
   /* The hero still needs to know the field is live. This class does two things that were
      lost when the canvas moved out of .hero-media: it drops the photograph, which was only
      ever the no-WebGL fallback and competes with the field when both are drawn, and it swaps
@@ -72,12 +75,6 @@
      through the hero copy. */
   var heroMedia = document.querySelector('.hero-media');
   if (heroMedia) heroMedia.classList.add('webgl-on');
-  /* Inside the field, after the canvas: it paints over the particles and inherits the same
-     clip, so it only dims where the field actually is. As a sibling of the field it dimmed the
-     whole page in the person state, where the field is confined to the hero and the rest of the
-     page should be untouched paper. */
-  host.appendChild(veil);
-
   /* Sized to the viewport, always. The clip decides how much of it you can see. */
   function hostSize() {
     return { w: Math.max(1, window.innerWidth), h: Math.max(1, window.innerHeight) };
@@ -92,10 +89,156 @@
     var bottom = Math.max(0, window.innerHeight - r.bottom);
     host.style.setProperty('--field-top', top + 'px');
     host.style.setProperty('--field-bottom', bottom + 'px');
+    /* The mask travels with the document while the element it is on is fixed to the viewport,
+       which is what keeps the dark bands over the text rather than sliding across it. Written
+       here, in the same handler and the same frame as the clip, so the veil's extent and the
+       veil's shape can never be a frame apart. It is one property write, no layout read. */
+    veil.style.webkitMaskPosition = maskPos();
+    veil.style.maskPosition = maskPos();
+  }
+  function maskPos() {
+    return '0 ' + -(window.pageYOffset || document.documentElement.scrollTop || 0) + 'px';
   }
   clipToHero();
   addEventListener('scroll', clipToHero, { passive: true });
   addEventListener('resize', clipToHero, { passive: true });
+
+  /* ---- the veil's shape, taken from the text rather than assumed ----
+     The veil's horizontal shape is in the stylesheet and always was. This is the vertical one,
+     and it is the reason for this version: as a single 90deg gradient the veil's alpha was a
+     function of x and nothing else, so at 390px, where the text column is the whole viewport,
+     it dimmed the gaps between paragraphs exactly as hard as it dimmed the paragraphs. The
+     field was not too dark by accident, it was uniformly turned down.
+
+     A band is the box of the smallest element holding a run of text, unioned with that run's
+     own line boxes. Line boxes alone were the first attempt and they are not enough: a heading
+     whose box is 54px tall has a 38px line box inside it, so the band began eight pixels below
+     the top of the element and the mask was still climbing its ramp where the first row of
+     glyphs sat. Measured 2.65:1 on that heading and 2.21:1 on the case study body. Taking the
+     element too means the band covers anything the element paints, whatever the leading, the
+     padding or the font's own overshoot does. Everything is in document coordinates, which is
+     why the veil is positioned in the document.
+
+     Text sitting on an opaque card is measured too. The card is between it and the field so
+     nothing there needs protecting, but the gaps that would be won back are the eighteen pixels
+     between one card and the next, which is under the merge distance anyway. Including it costs
+     nothing visible and removes a heuristic that could be wrong in the dangerous direction. */
+  /* Sixteen, not six. The band already covers the element's own box, but the mask's ramp has
+     to have finished climbing before the first row of glyph pixels rather than at it: at six
+     the case study body measured 3.53:1 against a solid white field, at fourteen it measured
+     5.36:1, which is the same reading the flat scrim gives, and at twenty four it does not
+     improve further. Sixteen is fourteen with a margin. */
+  /* Eight is for antialiasing and subpixel rounding, nothing more. It used to have to be
+     sixteen, to absorb a mask that had gone stale against a page reflowing under it. Rebuilding
+     when the page changes is the honest fix for that, and it hands the padding back to the
+     gaps: at 390px the gaps between blocks run about 28px, so every pixel spent on a safety
+     margin is a pixel of field nobody sees. */
+  var MASK_PAD = 8;         /* solid this far past the band, for antialiasing and rounding */
+  var MASK_FEATHER = 40;    /* the most one edge may soften over */
+  var MASK_MERGE = 10;      /* a gap this small is not worth opening, so the bands join */
+  var maskRaf = 0, lastMask = '', lastSize = '';
+
+  function px(v) { return Math.round(v) + 'px'; }
+
+  function textBands(height) {
+    var out = [], sy = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var wk = document.createTreeWalker(main, NodeFilter.SHOW_TEXT, null, false);
+    var range = document.createRange(), n, i, rects, q, a, b;
+    while ((n = wk.nextNode())) {
+      if (!/\S/.test(n.nodeValue)) continue;
+      range.selectNodeContents(n);
+      rects = range.getClientRects();
+      a = Infinity; b = -Infinity;
+      for (i = 0; i < rects.length; i++) {
+        q = rects[i];
+        if (q.width < 1 || q.height < 1) continue;
+        if (q.top < a) a = q.top;
+        if (q.bottom > b) b = q.bottom;
+      }
+      q = n.parentElement && n.parentElement.getBoundingClientRect();
+      if (q && q.height > 0) {
+        if (q.top < a) a = q.top;
+        if (q.bottom > b) b = q.bottom;
+      }
+      if (a === Infinity) continue;
+      a = a + sy - MASK_PAD;
+      b = b + sy + MASK_PAD;
+      /* Clipped to the document here, before anything is merged. Clamping later produced
+         stops that ran backwards, which a gradient reads as garbage. */
+      if (b <= 0 || a >= height) continue;
+      out.push([Math.max(0, a), Math.min(height, b)]);
+    }
+    out.sort(function (x, y) { return x[0] - y[0]; });
+    var merged = [];
+    for (i = 0; i < out.length; i++) {
+      var last = merged[merged.length - 1];
+      if (last && out[i][0] <= last[1] + MASK_MERGE) {
+        if (out[i][1] > last[1]) last[1] = out[i][1];
+      } else merged.push([out[i][0], out[i][1]]);
+    }
+    return merged;
+  }
+
+  /* The feather is a share of the gap it has to fit inside, capped. A fixed forty pixels
+     either side of every band closes any gap under eighty and the mask goes back to being a
+     flat dimmer, which is the bug this exists to fix. This way a small gap still opens in the
+     middle and a generous one opens completely. Stops are emitted in order and never allowed
+     to run backwards. */
+  function maskFrom(bands, height) {
+    if (!bands.length) return '';
+    var stops = [], i, at = -1;
+    function put(colour, v) {
+      v = Math.max(0, Math.min(height, v));
+      if (v < at) v = at;
+      at = v;
+      stops.push(colour + ' ' + px(v));
+    }
+    for (i = 0; i < bands.length; i++) {
+      var a = bands[i][0], b = bands[i][1];
+      var before = i ? a - bands[i - 1][1] : a * 2;
+      var after = i < bands.length - 1 ? bands[i + 1][0] - b : (height - b) * 2;
+      put('transparent', a - Math.min(MASK_FEATHER, before * 0.35));
+      put('#000', a);
+      put('#000', b);
+      put('transparent', b + Math.min(MASK_FEATHER, after * 0.35));
+    }
+    return 'linear-gradient(to bottom,' + stops.join(',') + ')';
+  }
+
+  function shapeVeil() {
+    maskRaf = 0;
+    var docH = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, 1);
+    var m = maskFrom(textBands(docH), docH);
+    var size = '100% ' + Math.round(docH) + 'px';
+    if (m !== lastMask || size !== lastSize) {
+      lastMask = m; lastSize = size;
+      veil.style.webkitMaskImage = m;
+      veil.style.maskImage = m;
+      veil.style.webkitMaskSize = size;
+      veil.style.maskSize = size;
+      veil.style.webkitMaskPosition = maskPos();
+      veil.style.maskPosition = maskPos();
+    }
+  }
+  function shapeSoon() { if (!maskRaf) maskRaf = requestAnimationFrame(shapeVeil); }
+
+  shapeVeil();
+  addEventListener('resize', shapeSoon, { passive: true });
+  addEventListener('lens:change', shapeSoon);
+  /* And on scroll. Not because the mask moves with the scroll, which the mask offset written
+     in clipToHero already handles, but because the page changes shape as you go down it: the
+     reveals settle, images arrive, and the lens re measures its cards when its fetch resolves.
+     A mask built before any of that and never rebuilt read 0.604 alpha at a paragraph's own
+     top edge and 3.53:1 against a white field. Scroll is the cheapest signal that a reader has
+     moved on to a part of the page whose geometry may have changed since. One rebuild walks
+     every run of text in main, a little over two hundred of them, and measures 0.8 to 2.5ms,
+     so it is rAF throttled and never runs twice in a frame. */
+  addEventListener('scroll', shapeSoon, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(shapeSoon).catch(function () {});
+  /* main changes height on its own as well: images arrive, the lens opens its cards, and the
+     AI state reflows the whole document. */
+  var maskRO = null;
+  if ('ResizeObserver' in window) { maskRO = new ResizeObserver(shapeSoon); maskRO.observe(main); }
 
   var size = hostSize();
   var scene = new THREE.Scene();
@@ -466,6 +609,11 @@
        harmless but keeps a scroll handler alive for a field that no longer exists. */
     removeEventListener('scroll', clipToHero);
     removeEventListener('resize', clipToHero);
+    removeEventListener('resize', shapeSoon);
+    removeEventListener('lens:change', shapeSoon);
+    removeEventListener('scroll', shapeSoon);
+    if (maskRO) maskRO.disconnect();
+    if (maskRaf) cancelAnimationFrame(maskRaf);
     window.removeEventListener('resize', resize);
     /* Back to the still photograph, which is what reduced motion should get. */
     if (heroMedia) heroMedia.classList.remove('webgl-on');

@@ -1379,7 +1379,14 @@ body.home{
      and everything else, the field, the tags, the annotations, the spread, keeps moving
      around it. Multiplying by 1000 makes the ramp 0.001 of a lens unit wide, which no frame
      can land inside. */
-  --gpal:clamp(0, calc((var(--lens) - .5) * 1000), 1);
+  /* A real step, which v1.21.0's was not. Multiplying by a thousand leaves a ramp a thousandth
+     of a lens unit wide, and lens.js writes the value to four decimal places, so a drag CAN
+     land inside it and get exactly the mid grey collapse the step exists to prevent: measured
+     11.09:1 and as low as 1.1:1 on the case study heading, on v1.21.0 as well as here. A
+     million makes the ramp a millionth wide, narrower than any value the control can write, so
+     the only reachable readings are 0 and 1. Offset so it flips on the same value as the
+     lens-goog class, which lens.js turns on at v >= 0.5. */
+  --gpal:clamp(0, calc((var(--lens) - .49995) * 1000000), 1);
 }
 
 /* The dark ground. It is built by lens.js, not by background-canvas.js, which is the whole
@@ -1395,13 +1402,13 @@ body.home{
    completely, measured as a flat 0.0056 luminance across the whole page. Two negative layers
    in the same stacking context order by z-index, which is what this is. */
 .lens-ground{
-  position:fixed;inset:0;z-index:-2;pointer-events:none;
+  position:fixed;inset:0;z-index:-4;pointer-events:none;
   background:var(--panel);opacity:var(--gpal);
 }
 /* The field itself. A direct child of body so no ancestor filter can turn position:fixed into
    position:absolute-against-that-ancestor and let it scroll away. */
 .lens-field{
-  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  position:fixed;inset:0;z-index:-2;pointer-events:none;
   /* JS writes the hero's live top and bottom here, so the field is confined to the hero at
      rest and opens to the whole viewport as the lens moves. That opening is the spill. */
   clip-path:inset(calc(var(--field-top,0px) * (1 - var(--gp))) 0
@@ -1409,35 +1416,56 @@ body.home{
 }
 .lens-field canvas{display:block;width:100%;height:100%}
 
-/* The veil, above the field and below every piece of content. It is the v1.11.0 hero overlay's
-   idea, heavy over the text and open past it, with two things changed that the measurements
-   forced. It is far heavier: an additively blended field can put a blown out white pixel
-   anywhere, and the dimmest text on the page, --ink-2 at luminance 0.307, tolerates a backdrop
-   of 0.029. What that costs in alpha has to be worked out in the space the browser actually
-   composites in, which is gamma encoded sRGB, not linear light: the first attempt did the sum
-   in linear light, got .974, and buried the field under a scrim three times heavier than the
-   text needed. Measured against a solid white field, the worst case an additive blend can
-   produce, the hero copy reads 3.81:1 at .80, 4.68:1 at .86, 5.36:1 at .90 and 6.52:1 at .98.
-   It is set at .90. And it opens at the text's own edge rather than at 72% of the viewport,
-   because the text runs to 90% of it and the original left the last fifth of every line
-   unprotected. That is the defect this fixes: on the shipped hero the amber field reads
-   straight through the meta line at 1.01:1. */
+/* The veil, above the field and below every piece of content. Two shapes multiplied.
+
+   The horizontal one is the background, and it is what it always was: solid across the text
+   box, which is the wrap inset by its own padding and then sixteen pixels of margin, and open
+   past it. The stops are the column's own edges rather than percentages, so the mask stays
+   derived from the layout at every width.
+
+   The vertical one is a mask, written by background-canvas.js from the real line boxes and
+   element boxes of the text in main. That is the point of this version. As one horizontal
+   gradient the veil was a function of x and nothing else, so on a phone, where the text column
+   is the entire viewport, it dimmed empty space exactly as hard as it dimmed text: measured
+   0.0166 peak luminance in a text band and 0.0166 in the gap between two blocks, a ratio of
+   1.00. That is not a mask, it is a dimmer with the lights turned down on the whole page.
+
+   The two multiply, because a mask multiplies whatever alpha it is applied to, which gives
+   "dense where text is, open where it is not" without needing mask-composite and its patchier
+   support.
+
+   It is a CHILD of the field, not a sibling, so it inherits the field's clip-path and cannot
+   paint anywhere the field is absent. That is not tidiness. As a sibling it had to carry its
+   own copy of the spill geometry, and the two copies disagreed: at lens 0.3, scrolled past the
+   hero, the field's clip removed all of it while the veil still covered the whole viewport at
+   .90, so the page went black under a palette that is still light. Dark ink on black, 2.06:1,
+   and a drag can hold that value for as long as it likes. A shape that has to agree with
+   another shape will eventually not.
+
+   Being a child makes it viewport positioned, and the mask has to be in document coordinates
+   or it slides over the text as the page scrolls. So the mask is sized to the document and
+   offset by the scroll position, written in the same handler that moves the field's clip, so
+   those two can never be a frame apart from each other.
+
+   Alpha over text is .90. It is measured against a solid white field, the worst an additive
+   blend can produce: the hero copy reads 3.81:1 at .80, 4.68:1 at .86 and 5.36:1 at .90. */
 .lens-veil{
   position:absolute;inset:0;pointer-events:none;
-  /* Two numbers, and the layout decides where they apply: the scrim that sits over the text,
-     and what is left of it out past the text. The stops are the text box's own edges, the
-     wrap inset by its own padding and then sixteen pixels of margin, so the mask is derived
-     from the content column at every width rather than from percentages that stop being true
-     at the next one. Wide screens open up because they have room to; the stops cross the
-     viewport edge at 1049px, and below that they are outside it and the veil is a single flat
-     value, which is the honest answer when the text is nearly the whole width. */
   --veil-col:.90;
+  /* The gutters are fully open, because nothing in them is text at any width and the vertical
+     mask is what decides where the veil is needed at all. Without mask-image there is no
+     vertical mask, so they go back to what v1.21.0 had: the fallback must never be weaker
+     than the thing it is falling back from. */
   --veil-edge:.25;
   background:linear-gradient(90deg,
     rgba(11,10,7,var(--veil-edge)) 0,
     rgba(11,10,7,var(--veil-col)) calc(50% - var(--w) / 2 + var(--gutter) - 16px),
     rgba(11,10,7,var(--veil-col)) calc(50% + var(--w) / 2 - var(--gutter) + 16px),
     rgba(11,10,7,var(--veil-edge)) 100%);
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+}
+@supports (mask-image: linear-gradient(#000, #000)){
+  .lens-veil{--veil-edge:0}
 }
 
 /* The hero band drops below the field so the particles read as being in the room rather than
@@ -1450,8 +1478,14 @@ body.home .hero{background:transparent}
    the same instant the ground steps in, so the band never passes through half lit. With the
    field live there is no photograph to fade: .hero-media is the band's flat ground and it
    matches --panel exactly, so the hero and the page are one colour once the page is dark. */
-body.home .hero-media{z-index:-1;opacity:calc(1 - var(--gpal))}
-body.home .hero-media.webgl-on{opacity:1;background:var(--panel)}
+/* Four layers, bottom to top: the ground at -4, the hero's own band at -3, the field at -2
+   and the veil at -1. The hero band has to be UNDER the field, which is what it was not when
+   the veil moved out of the field and every layer shifted down one: an opaque .hero-media at
+   the same depth as the field, later in the document, painted straight over it and the amber
+   went out. It is the hero's dark ground while the page is light, and it steps out with the
+   palette because by then the ground behind it is the same colour. */
+body.home .hero-media{z-index:-3;opacity:calc(1 - var(--gpal))}
+body.home .hero-media.webgl-on{background:var(--panel)}
 body.home .hero .wrap{position:relative;z-index:1}
 
 /* The page text crosses to the dark palette on the same value. Tokens rather than rules, so
