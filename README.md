@@ -1,9 +1,11 @@
-# nathanhaslewood.com.au · v1.21.0
+# nathanhaslewood.com.au · v1.21.1
 
 Static site, built with AI assistance. No framework, no build step. Every file in this folder deploys as-is.
 
-## Deploy to Netlify
-Drag this folder (or the zip) onto Netlify's deploy area, then point nathanhaslewood.com.au at it under Domain management. Build command: none. Publish directory: root.
+## Deploy
+Hosted on Cloudflare Workers static assets, deployed automatically from `main` in this repository. Build command: none. Output directory: root. Config is in `wrangler.jsonc`; see the Cloudflare notes in CLAUDE.md before changing it.
+
+Cloudflare caches at the edge, so a changed page can serve stale for a while after a deploy. That is caching, not a failed build. Purge in the dashboard before concluding something is broken.
 
 ## Preview locally
 Links are root-absolute, so use a server: python3 -m http.server 8000
@@ -23,7 +25,7 @@ No email address anywhere by design. All contact routes to LinkedIn.
 - OG share image (1200x630) per page.
 - September 2026: KDP Select auto-renew OFF now; on lapse, publish full book text and change /book/ status line.
 - Second book: 2027 edition live in full at /super/ (done in v1.9). Download assets refreshed in v1.9.1 (PDF now carries the cover as page 1). The bold-label '.:' artifact is still in the supplied PDF/EPUB (77 hits) and still corrected on the site pages only; fix it in the manuscript source on the next regeneration. Verification register sign-off still pending.
-- Analytics: Netlify Analytics or Plausible only. GA contradicts the footer promise.
+- Analytics: Cloudflare Web Analytics or Plausible only. GA contradicts the footer promise.
 - BankVic case study after 6 to 12 months, with permission.
 
 ## v1.4
@@ -285,4 +287,8 @@ No email address anywhere by design. All contact routes to LinkedIn.
 - Reported rather than fixed, second one: at 1280px the AI state pushes the control 94px below the fold, because holding the reading position is worth more than holding the control and the hero grows underneath it. At 390px it stays on screen throughout. A reader who wants the control back scrolls a little.
 - Verified in Chromium at 320, 360, 390, 420, 430, 520, 768 and 1280px: no horizontal overflow, no clipped control labels, no console errors. The field's clip follows the hero while scrolling in the person state and opens to the whole viewport as the value rises; held at 0.49 the clip, the ground and the hero band are each half way. Reduced motion reaches a state with no tween, the field is never built, and the hero falls back to the photograph. With JavaScript off there is no field, no ground, no veil, no lens markup and no webgl-on: the page is the photograph, the three static stops and every word of content. Every other page renders pixel identically to main, /book/ included, in all three of its states.
 - Note on how this was built: there is no GPU in the environment this was made in, so the segment budget is a workload number, not a timing. Particles are unchanged from the hero only field and the sub-700px halving carries through; what bounds the page wide states is the segment cap. The three.js CDN is also blocked there, so the field was tested behind a local interception of that one request. That harness is test only and is not in the repo: the pinned r128 tag and its SRI hash in index.html are untouched.
-- Not fixed, reported: /colophon/ and this file both say the site is hosted on Netlify, and it has been on Cloudflare Workers since the move. Two sentences, both public, both wrong. Worth correcting deliberately rather than as a side effect of this change.
+- Fixed in v1.21.1: /colophon/ and this file both said the site was hosted on Netlify. Corrected to Cloudflare Workers. Worth correcting deliberately rather than as a side effect of this change.
+
+## v1.21.1
+- Corrected the hosting claim. /colophon/ said "Hosted on Netlify" and this README carried a "Deploy to Netlify" section, both left over from before the move to Cloudflare Workers. The colophon now reads "Hosted on Cloudflare Workers, deployed straight from a public GitHub repository", which is accurate and also says something more interesting than the old line did. The README deploy section describes the real pipeline, including the edge caching behaviour that makes a fresh deploy look stale. The analytics note now names Cloudflare Web Analytics rather than Netlify Analytics.
+- Copy only. No CSS, no JavaScript, no structural change.
