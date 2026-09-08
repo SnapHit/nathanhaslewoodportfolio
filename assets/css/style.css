@@ -15,6 +15,7 @@
   --signal-b:#F0561D;
   --index:#2450C8;
   --index-b:#3B6BFF;
+  --index-c:#6E93FF;   /* cobalt lit for dark grounds: 6.55:1 on --panel, where --index is 2.75 */
   --ok:#177A4C;
   --ok-b:#1FB878;
   --spectrum:linear-gradient(90deg,var(--signal-b),var(--index-b),var(--ok-b));
@@ -22,14 +23,19 @@
   --sans:"Instrument Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
   --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --w:1100px;
+  --gutter:clamp(20px,4vw,44px);   /* .wrap's own padding, and therefore where the text starts */
   --prose:66ch;
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth}
+/* The ground lives on <html>, not <body>. A fixed layer at z-index:-1 behind the content is
+   painted UNDER an opaque body background and is completely invisible: that is the bug that
+   cost the v1.10.0 particle field, proven then with full opacity red nobody could see. Every
+   page renders identically, because html now paints exactly what body used to. */
+html{scroll-behavior:smooth;background:var(--paper)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
-  margin:0;background:var(--paper);color:var(--ink);
+  margin:0;background:transparent;color:var(--ink);
   font-family:var(--sans);font-size:1.03rem;line-height:1.7;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
@@ -43,7 +49,7 @@ img,svg{max-width:100%;height:auto}
 .skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:var(--paper);padding:.6rem 1rem;z-index:200;font-family:var(--mono);font-size:.8rem}
 .skip:focus{left:12px;top:12px}
 
-.wrap{max-width:var(--w);margin-inline:auto;padding-inline:clamp(20px,4vw,44px)}
+.wrap{max-width:var(--w);margin-inline:auto;padding-inline:var(--gutter)}
 .prose{max-width:var(--prose)}
 .prose p{margin:0 0 1.15em}
 .prose h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:1.15;margin:2.3em 0 .55em;letter-spacing:-.01em}
@@ -88,7 +94,11 @@ strong{font-weight:600}
 /* dark header + hero on the homepage */
 .home .top{background:color-mix(in srgb,var(--panel) 84%,transparent);border-bottom-color:var(--panel-2)}
 .home .top .brand{color:var(--panel-ink)}
-.home .top nav a{color:var(--panel-dim)}
+/* Not --panel-dim. The homepage header is --panel at 84%, so it sits lighter than the footer
+   the token was set against, and --panel-dim on it measures 4.05:1 worst pixel under the
+   glyphs, at every scroll position and in every lens state. This is the lit variant, 4.97:1.
+   Pre-existing, found while measuring v1.21 and fixed here because it is the front door. */
+.home .top nav a{color:#ADA79A}
 .home .top nav a:hover,.home .top nav a[aria-current="page"]{color:#fff}
 
 /* ---------- hero ---------- */
@@ -120,20 +130,29 @@ strong{font-weight:600}
 .frame-chrome .req{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);display:flex;gap:.9em;flex-wrap:wrap}
 .frame-chrome .req b{color:var(--ink);font-weight:500}
 .frame-chrome .status{color:var(--ok);font-weight:500}
-.frame-scan{height:3px;background-image:var(--spectrum);background-repeat:no-repeat;background-size:0 100%;transition:background-size .5s ease}
-.frame.scanning .frame-scan{background-size:100% 100%}
 .frame-tabs{display:flex;border-bottom:1px solid var(--line);background:#fff}
-.frame-tabs button{appearance:none;background:none;border:0;border-right:1px solid var(--line);padding:.95rem 1.3rem;font-family:var(--mono);font-size:.82rem;color:var(--ink-2);cursor:pointer;display:flex;align-items:center;gap:.55em;position:relative}
-.frame-tabs button .dot{width:.6em;height:.6em;border-radius:50%;background:var(--line);flex:none;transition:background .2s,box-shadow .2s}
-.frame-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:transparent;transition:background .2s}
-.frame-tabs button[aria-selected="true"]{color:var(--ink);background:var(--paper);font-weight:500}
-.frame-tabs button[data-reader="person"][aria-selected="true"] .dot{background:var(--signal-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--signal-b) 22%,transparent)}
-.frame-tabs button[data-reader="google"][aria-selected="true"] .dot{background:var(--index-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--index-b) 22%,transparent)}
-.frame-tabs button[data-reader="ai"][aria-selected="true"] .dot{background:var(--ok-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok-b) 22%,transparent)}
-.frame-tabs button[data-reader="person"][aria-selected="true"]::after{background:var(--signal-b)}
-.frame-tabs button[data-reader="google"][aria-selected="true"]::after{background:var(--index-b)}
-.frame-tabs button[data-reader="ai"][aria-selected="true"]::after{background:var(--ok-b)}
+/* Two callers, one look. The homepage's three stops arrive in the markup as spans carrying
+   .frame-tab, because with JavaScript off nothing can act on them and a button that does
+   nothing when pressed is worse than a label that never claimed it would; lens.js takes that
+   class off when it adopts them, so these rules and the .frame-stop rules never both apply.
+   The reader pill's overlay, on twenty nine other pages, builds a real tablist of buttons in
+   site.js and is selected with aria-selected. Both are matched here. Narrowing this to the
+   class alone left those pages with two default operating system buttons, no reader dots and
+   no selected state at all. */
+.frame-tabs button,.frame-tabs .frame-tab{appearance:none;background:none;border:0;border-right:1px solid var(--line);padding:.95rem 1.3rem;font-family:var(--mono);font-size:.82rem;color:var(--ink-2);display:flex;align-items:center;gap:.55em;position:relative}
+.frame-tabs button .dot,.frame-tabs .frame-tab .dot{width:.6em;height:.6em;border-radius:50%;background:var(--line);flex:none}
+.frame-tabs button{cursor:pointer;transition:color .2s}
+.frame-tabs button .dot{transition:background .2s,box-shadow .2s}
 .frame-tabs button:hover{color:var(--ink)}
+.frame-tabs button::after,.frame-tabs .frame-tab::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:transparent}
+.frame-tabs button::after{transition:background .2s}
+.frame-tabs button[aria-selected="true"],.frame-tabs .frame-tab[data-current]{color:var(--ink);background:var(--paper);font-weight:500}
+.frame-tabs button[data-reader="person"][aria-selected="true"] .dot,.frame-tabs .frame-tab[data-reader="person"][data-current] .dot{background:var(--signal-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--signal-b) 22%,transparent)}
+.frame-tabs button[data-reader="google"][aria-selected="true"] .dot,.frame-tabs .frame-tab[data-reader="google"][data-current] .dot{background:var(--index-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--index-b) 22%,transparent)}
+.frame-tabs button[data-reader="ai"][aria-selected="true"] .dot,.frame-tabs .frame-tab[data-reader="ai"][data-current] .dot{background:var(--ok-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok-b) 22%,transparent)}
+.frame-tabs button[data-reader="person"][aria-selected="true"]::after,.frame-tabs .frame-tab[data-reader="person"][data-current]::after{background:var(--signal-b)}
+.frame-tabs button[data-reader="google"][aria-selected="true"]::after,.frame-tabs .frame-tab[data-reader="google"][data-current]::after{background:var(--index-b)}
+.frame-tabs button[data-reader="ai"][aria-selected="true"]::after,.frame-tabs .frame-tab[data-reader="ai"][data-current]::after{background:var(--ok-b)}
 .frame-body{min-height:340px}
 .home .frame-body{min-height:400px}
 .frame-panel{padding:1.6rem 1.7rem;display:none}
@@ -368,7 +387,7 @@ path.d-arrow{stroke:var(--index);stroke-width:1.4;fill:none;marker-end:url(#arr)
 /* footer */
 footer.site{background:var(--panel);color:var(--panel-ink);margin-top:clamp(3rem,7vw,5rem);position:relative;overflow:hidden}
 footer.site::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--spectrum)}
-.giant{font-family:var(--serif);font-weight:700;font-size:clamp(3rem,11.5vw,9.6rem);line-height:.95;letter-spacing:-.045em;color:#231F17;padding:3rem clamp(20px,4vw,44px) 0;white-space:nowrap;overflow:hidden;user-select:none}
+.giant{font-family:var(--serif);font-weight:700;font-size:clamp(3rem,11.5vw,9.6rem);line-height:.95;letter-spacing:-.045em;color:#231F17;padding:3rem var(--gutter) 0;white-space:nowrap;overflow:hidden;user-select:none}
 .giant span{color:inherit}
 footer.site .wrap{padding-block:2.4rem 2.2rem;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:2.4rem}
 footer.site h4{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--panel-dim);margin:0 0 .9rem;font-weight:500}
@@ -396,7 +415,6 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
   path.d-arrow{animation:none}
   line.d-arrow{stroke-dashoffset:0;transition:none}
   .frame-panel.active,.roverlay-card{animation:none}
-  .frame-scan{transition:none}
   .js .reveal,.js [data-stagger] > *{opacity:1;transform:none;transition:none}
   .js .sampler.ready .spage.cur{animation:none}
   .panel-ai.staging .log > div{opacity:1;animation:none}
@@ -404,9 +422,20 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 
 /* ---------- v1.3: generated imagery ---------- */
 .hero.has-media::before,.hero.has-media::after{display:none}
-.hero-media{position:absolute;inset:0;z-index:0;background:#000 url(/assets/img/gen-hero.jpg) center/cover no-repeat}
+.hero-media{position:absolute;inset:0;z-index:0;background:#000 url(/assets/img/gen-hero.jpg) center/cover no-repeat;--hero-veil-col:.9;--hero-veil-edge:.34}
 .hero-media video{width:100%;height:100%;object-fit:cover;display:block}
-.hero-media::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(19,17,9,.9) 0%,rgba(19,17,9,.15) 42%),linear-gradient(90deg,rgba(19,17,9,.95) 0%,rgba(19,17,9,.72) 45%,rgba(19,17,9,.3) 100%)}
+/* The no-WebGL and reduced-motion path: the photograph, and the only overlay standing between
+   it and the hero copy. Same shape as the field's veil, and for the same reason: the copy runs
+   to the edge of the content column, so an overlay that starts easing off at 45% of the
+   viewport leaves the back half of every line sitting on the bright part of the picture. The
+   meta line measured 3.31:1 there. Held across the text box, open in the gutters. */
+.hero-media::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(0deg,rgba(19,17,9,.9) 0%,rgba(19,17,9,.15) 42%),
+  linear-gradient(90deg,
+    rgba(19,17,9,var(--hero-veil-edge)) 0,
+    rgba(19,17,9,var(--hero-veil-col)) calc(50% - var(--w) / 2 + var(--gutter) - 16px),
+    rgba(19,17,9,var(--hero-veil-col)) calc(50% + var(--w) / 2 - var(--gutter) + 16px),
+    rgba(19,17,9,var(--hero-veil-edge)) 100%)}
 /* WebGL hero: the photo would compete with the particle field, so it is dropped once the
    canvas is live and kept only as the no-WebGL / reduced-motion fallback. The overlay is
    kept strong over the text column on the left and eased off on the right. */
@@ -1086,7 +1115,7 @@ body.arcade ::selection{color:#FBFAF6}
     linear-gradient(180deg,#04070e 0%,#060d18 40%,#04070e 100%);
 }
 
-/* ---------- v1.20: the machine reader lens (pilot, /book/ only) ---------- */
+/* ---------- v1.20: the machine reader lens ---------- */
 /* The page becomes its own machine reading in place, rather than a modal describing it.
    One registered custom property drives everything. 0 person, 1 Google, 2 AI. Registering
    it makes it a real number the browser can interpolate, so a half drag is a half
@@ -1094,7 +1123,8 @@ body.arcade ::selection{color:#FBFAF6}
 
    Scoped under .lens-host, which lens.js adds to <body>. With JavaScript off the class is
    never added, no control is built, and every rule below is inert. lens.js loads on /book/
-   and nowhere else, so this cannot reach another page even by accident. */
+   and, since v1.21, on the homepage; nowhere else. Every other page is untouched because the
+   file is not on it, not because these rules check. */
 @property --lens{syntax:"<number>";initial-value:0;inherits:true}
 @property --li{syntax:"<number>";initial-value:0;inherits:false}
 @property --g{syntax:"<number>";initial-value:0;inherits:true}
@@ -1126,14 +1156,20 @@ html.lens-anchoring{scroll-behavior:auto}
 
 /* Colour recedes. The filter sits on content blocks, never on an ancestor of the control:
    a filter makes position:fixed resolve against that element, which would let the control
-   scroll away mid transition. */
+   scroll away mid transition, and it would also drain the three reader dots. The homepage's
+   frame is a content block AND holds the control, so lens.js hands the index to the frame's
+   body instead of the frame, which is what keeps this true there. */
 .lens-host [data-lens-i]{filter:grayscale(var(--g))}
 .lens-host header.top,.lens-host footer.site{filter:grayscale(var(--ap))}
 
 /* The one uninterpolatable moment. Font family and column count snap at the middle of the
    AI band, so the page dips through that instant and comes back: a parabola peaking exactly
-   where the snap happens, which reads as a cross fade rather than a flicker. */
-.lens-host main{opacity:calc(1 - .45 * 4 * var(--ap) * (1 - var(--ap)))}
+   where the snap happens, which reads as a cross fade rather than a flicker. The depth is set
+   by contrast, not by taste. Everything in main composites toward the page behind it at the
+   bottom of the dip, and a drag can be held there indefinitely, so it is a state that has to
+   pass rather than a frame that goes by: at .45 the smallest label measured 3.83:1. .25 leaves
+   the shallowest reading at about 4.9:1. */
+.lens-host main{opacity:calc(1 - .25 * 4 * var(--ap) * (1 - var(--ap)))}
 @media (prefers-reduced-motion:reduce){ .lens-host main{opacity:1} }
 
 /* ---- heading tags, read from the live tagName ---- */
@@ -1141,7 +1177,11 @@ html.lens-anchoring{scroll-behavior:auto}
   display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:baseline;
   font-family:var(--mono);font-weight:500;letter-spacing:.04em;
   font-size:.62em;line-height:1;color:var(--index);
-  max-width:calc(var(--g) * 7ch);opacity:var(--g);
+  /* The tag slides open rather than fading in. Tied straight to --g it was translucent for
+     most of the band, and a drag can be held anywhere in that band: measured 2.29:1 held at
+     the middle. Reaching full opacity by the time it is a sixth of the way open keeps the
+     wave and makes every frame of it readable. */
+  max-width:calc(var(--g) * 7ch);opacity:clamp(0, calc(var(--g) * 6), 1);
   margin-right:calc(var(--g) * .55ch);
 }
 .lens-host.lens-ai .lens-tag{color:inherit}
@@ -1282,7 +1322,9 @@ html.lens-anchoring{scroll-behavior:auto}
   background:color-mix(in srgb,var(--panel) 94%,transparent);
   border:1px solid var(--panel-2);
   box-shadow:0 18px 40px -18px rgba(0,0,0,.7);
-  touch-action:none;user-select:none;
+  /* pan-y, not none. A finger that lands on this is often only passing through on its way up
+     the page, and lens.js will not take a gesture until it proves itself sideways. */
+  touch-action:pan-y;user-select:none;
 }
 .lens-track{
   position:relative;display:grid;grid-template-columns:repeat(3,1fr);
@@ -1318,4 +1360,201 @@ html.lens-anchoring{scroll-behavior:auto}
 @media (max-width:420px){
   .lens-stop{font-size:.64rem;padding:.5rem .1rem}
   .lens-track{width:min(17rem,80vw)}
+}
+
+/* ---------- v1.21: the homepage lens, and the field that spreads with it ---------- */
+/* The frame and the particle field were two mechanisms for one idea. They are now one: the
+   frame IS the lens control, and --lens drives the page, the frame and the field together.
+   The lens core is shared with /book/; only the presentation differs. */
+
+body.home{
+  /* The field's spread, which is continuous. */
+  --gp:clamp(0, var(--lens), 1);
+  /* The palette, which cannot be. Ink and paper both cross the middle of the range if they
+     are interpolated, so at the halfway point of a drag the page was dark grey text on a dark
+     grey card: measured 1.08:1 on the section headings and 1.37:1 on body copy, across about
+     38% of the control's travel. There is no continuous path out of that. Two colours that
+     swap places have to pass through each other, and this site already learned it once on the
+     chapter label in v1.20.1, which was fixed the same way. So the palette steps at the middle
+     and everything else, the field, the tags, the annotations, the spread, keeps moving
+     around it. Multiplying by 1000 makes the ramp 0.001 of a lens unit wide, which no frame
+     can land inside. */
+  --gpal:clamp(0, calc((var(--lens) - .5) * 1000), 1);
+}
+
+/* The dark ground. It is built by lens.js, not by background-canvas.js, which is the whole
+   point: as a layer the field created it did not exist at all when three.js was blocked or
+   when a reader asked for reduced motion, while the palette crossed over anyway and left a
+   white headline on white paper at 1.04:1 on both paths. lens.js runs on every one of those
+   paths, so the ground does too.
+
+   It is an element and not body's own background, which was the second attempt and is the
+   v1.10.0 bug written out again: body does not create a stacking context, so a z-index:-1
+   fixed layer belongs to the root's, where negative z-index descendants paint BEFORE the
+   in-flow block backgrounds. Body's background therefore paints over the field and hides it
+   completely, measured as a flat 0.0056 luminance across the whole page. Two negative layers
+   in the same stacking context order by z-index, which is what this is. */
+.lens-ground{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:var(--panel);opacity:var(--gpal);
+}
+/* The field itself. A direct child of body so no ancestor filter can turn position:fixed into
+   position:absolute-against-that-ancestor and let it scroll away. */
+.lens-field{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  /* JS writes the hero's live top and bottom here, so the field is confined to the hero at
+     rest and opens to the whole viewport as the lens moves. That opening is the spill. */
+  clip-path:inset(calc(var(--field-top,0px) * (1 - var(--gp))) 0
+                  calc(var(--field-bottom,0px) * (1 - var(--gp))) 0);
+}
+.lens-field canvas{display:block;width:100%;height:100%}
+
+/* The veil, above the field and below every piece of content. It is the v1.11.0 hero overlay's
+   idea, heavy over the text and open past it, with two things changed that the measurements
+   forced. It is far heavier: an additively blended field can put a blown out white pixel
+   anywhere, and the dimmest text on the page, --ink-2 at luminance 0.307, tolerates a backdrop
+   of 0.029. What that costs in alpha has to be worked out in the space the browser actually
+   composites in, which is gamma encoded sRGB, not linear light: the first attempt did the sum
+   in linear light, got .974, and buried the field under a scrim three times heavier than the
+   text needed. Measured against a solid white field, the worst case an additive blend can
+   produce, the hero copy reads 3.81:1 at .80, 4.68:1 at .86, 5.36:1 at .90 and 6.52:1 at .98.
+   It is set at .90. And it opens at the text's own edge rather than at 72% of the viewport,
+   because the text runs to 90% of it and the original left the last fifth of every line
+   unprotected. That is the defect this fixes: on the shipped hero the amber field reads
+   straight through the meta line at 1.01:1. */
+.lens-veil{
+  position:absolute;inset:0;pointer-events:none;
+  /* Two numbers, and the layout decides where they apply: the scrim that sits over the text,
+     and what is left of it out past the text. The stops are the text box's own edges, the
+     wrap inset by its own padding and then sixteen pixels of margin, so the mask is derived
+     from the content column at every width rather than from percentages that stop being true
+     at the next one. Wide screens open up because they have room to; the stops cross the
+     viewport edge at 1049px, and below that they are outside it and the veil is a single flat
+     value, which is the honest answer when the text is nearly the whole width. */
+  --veil-col:.90;
+  --veil-edge:.25;
+  background:linear-gradient(90deg,
+    rgba(11,10,7,var(--veil-edge)) 0,
+    rgba(11,10,7,var(--veil-col)) calc(50% - var(--w) / 2 + var(--gutter) - 16px),
+    rgba(11,10,7,var(--veil-col)) calc(50% + var(--w) / 2 - var(--gutter) + 16px),
+    rgba(11,10,7,var(--veil-edge)) 100%);
+}
+
+/* The hero band drops below the field so the particles read as being in the room rather than
+   behind a wall. .hero-media is the band's own dark ground once the field is live: the class
+   background-canvas.js adds turns off the photograph, which is the no-WebGL fallback, and it
+   fades out as the page darkens so the band merges into the page rather than staying a panel
+   inside it. */
+body.home .hero{background:transparent}
+/* The photograph is the no-WebGL and reduced-motion hero. It steps out with the palette, at
+   the same instant the ground steps in, so the band never passes through half lit. With the
+   field live there is no photograph to fade: .hero-media is the band's flat ground and it
+   matches --panel exactly, so the hero and the page are one colour once the page is dark. */
+body.home .hero-media{z-index:-1;opacity:calc(1 - var(--gpal))}
+body.home .hero-media.webgl-on{opacity:1;background:var(--panel)}
+body.home .hero .wrap{position:relative;z-index:1}
+
+/* The page text crosses to the dark palette on the same value. Tokens rather than rules, so
+   every section, card and border comes along without being rewritten one at a time. */
+body.home main{
+  --ink:color-mix(in srgb,#171410 calc((1 - var(--gpal)) * 100%),#EFEBE2);
+  --ink-2:color-mix(in srgb,#57534A calc((1 - var(--gpal)) * 100%),#9C968A);
+  --line:color-mix(in srgb,#E6E1D6 calc((1 - var(--gpal)) * 100%),#26221A);
+  --paper:color-mix(in srgb,#FBFAF6 calc((1 - var(--gpal)) * 100%),#131109);
+  --ok:color-mix(in srgb,#177A4C calc((1 - var(--gpal)) * 100%),#1FB878);
+  color:var(--ink);
+}
+/* Cards carry their own #fff and would stay lit islands on a dark page. The two cards the
+   lens injects, the head material and the response, were the worst of them: white card, near
+   white text, 1.19:1 on every value it reports, and that card IS the Google reading. */
+body.home main .frame,
+body.home main .frame-tabs,
+body.home main .lens-head-in,body.home main .lens-resp-in{
+  background:color-mix(in srgb,#fff calc((1 - var(--gpal)) * 100%),#1b1811)}
+body.home main .tile,body.home main .card,body.home main .stat,
+body.home main .ticker,body.home main .stats > div{
+  background:color-mix(in srgb,#fff calc((1 - var(--gpal)) * 100%),#1b1811)}
+/* Cobalt is the right blue on paper and 2.75:1 on a dark ground. Both the tags and the cards'
+   own captions cross to the lit blue with everything else. */
+body.home main .lens-tag,body.home main .lens-cap{
+  color:color-mix(in srgb,var(--index) calc((1 - var(--gpal)) * 100%),var(--index-c))}
+/* The hero band is dark at every value, not only once the palette has crossed, so a tag in it
+   is cobalt on near black from the first frame of the band: 2.29:1 held at a quarter open. It
+   takes the lit blue immediately. In the AI state every tag inherits the body colour, and that
+   still wins here. */
+body.home .hero .lens-tag{color:var(--index-c)}
+body.home.lens-ai .hero .lens-tag{color:inherit}
+body.home main .lens-resp-in .lens-cap{color:var(--ok)}
+
+/* ---------- the frame, as the lens control ---------- */
+/* Same states, same keyboard, same announcements as the pill on /book/. What differs is that
+   this one is large and in the flow: the homepage's job is to teach the interaction that shows
+   up as a small floating control everywhere else. */
+/* pan-y, not none. This control is a full width bar sitting in the middle of the hero, and
+   without it the pointerdown handler captured the whole gesture: an emulated touch swipe
+   starting anywhere on the bar scrolled 0px against 656px on the shipped page. The browser
+   keeps vertical panning and hands the slider only what moves sideways. */
+.frame-tabs{position:relative;touch-action:pan-y}
+/* The thumb, brought over from the /book/ control so the active state is a filled shape rather
+   than a weight change, and so the same object moves under a drag. */
+.frame-thumb{
+  position:absolute;top:0;bottom:0;left:calc(var(--lens) * 100% / 3);width:calc(100% / 3);
+  pointer-events:none;z-index:0;border-radius:10px 10px 0 0;
+  background:color-mix(in srgb,var(--lens-hue) 16%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lens-hue) 55%,transparent),
+             0 -2px 14px -6px var(--lens-hue);
+}
+/* The three stops. They were <button> inside a tablist; they are spans inside a slider now,
+   because a slider with focusable children is two keyboard models fighting over one object. */
+.frame-stop{
+  position:relative;z-index:1;flex:1 1 0;
+  display:flex;align-items:center;justify-content:center;gap:.55em;
+  padding:.95rem .8rem;font-family:var(--mono);font-size:.82rem;letter-spacing:.01em;
+  /* All three labels at full ink, not --ink-2 for the two that are not chosen. The thumb is a
+     translucent tint of the reader's own hue, and mid travel it covers part of a label that is
+     not yet the chosen one: --ink-2 under that tint measured 2.95:1 at 1.5 and 3.02:1 at 1.25,
+     and a drag can be held at either. Which one is chosen is carried by the thumb, the weight
+     and the ring on the dot, all three of which are still here. */
+  color:var(--ink);border-right:1px solid var(--line);white-space:nowrap;
+  /* Thirds, and actually thirds. A flex item defaults to min-width:auto, so below about 430px
+     "An AI assistant" held its min content width and the three stops went 96/96/125 while the
+     thumb and the value maths both assumed 1/3 each. The leftmost 19px of that label selected
+     Google. The type shrinks with the viewport so the longest label still fits its third. */
+  min-width:0;
+  /* The stops still carry .lens-stop so the core can treat both controls the same, and that
+     class rounds them to a pill. A pill radius on an element whose only border is the right
+     hand one draws that border as a long arc across the middle of the control. Square here. */
+  border-radius:0;
+}
+.frame-stop:last-child{border-right:0}
+.frame-stop[aria-pressed="true"]{color:var(--ink);font-weight:500}
+/* The dots carry full colour in every state, selected or not. Unselected they were --line on
+   white, about 1.2:1, a dot nobody can see. They are the key to the whole idea, and they were
+   the one thing on the control that went missing whenever it was not the chosen one. This
+   holds in the machine states too, because the greyscale filter is on the frame's body rather
+   than on the frame. */
+.frame-stop .dot{width:.6em;height:.6em;border-radius:50%;flex:none}
+.frame-stop[data-reader="person"] .dot{background:var(--signal-b)}
+.frame-stop[data-reader="google"] .dot{background:var(--index-b)}
+.frame-stop[data-reader="ai"] .dot{background:var(--ok-b)}
+.frame-stop[aria-pressed="true"] .dot{box-shadow:0 0 0 4px color-mix(in srgb,var(--lens-hue) 22%,transparent)}
+@media (max-width:520px){.frame-stop{padding:.8rem .35rem;font-size:clamp(.56rem,2.3vw,.7rem);gap:.4em}}
+/* Hidden until lens.js has taken the frame over, and its counterpart shown instead. Both
+   sentences ask the reader to do something with a control, and with JavaScript off there is
+   nothing to do it with. Not one word of the argument is lost either way: the static copy
+   makes the same claim without pointing at a control that cannot answer. */
+.live-only{display:none}
+.frame-live .live-only{display:block}
+.frame-live .static-only{display:none}
+.frame-invite{display:none}
+.frame-live .frame-invite{
+  display:block;padding:.55rem 1rem .7rem;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:.72rem;line-height:1.5;color:var(--ink-2);
+}
+.frame-invite b{color:var(--ink);font-weight:500}
+.frame-tabs:focus-visible{outline:2px solid var(--lens-hue);outline-offset:-2px}
+
+/* Reduced motion: the states still work, they simply do not move, and the field never runs. */
+@media (prefers-reduced-motion:reduce){
+  body.home .lens-field{display:none}
 }

@@ -1,5 +1,7 @@
 /* lens.js
-   The machine reader lens. Pilot, loaded on /book/ only.
+   The machine reader lens. Loaded on /book/ and on the homepage, in two presentations of the
+   same mechanism: a small fixed pill on /book/, and the reader frame itself on the homepage,
+   where the frame IS the control and the whole page is the output.
 
    The reader pill opens a modal that DESCRIBES the page's machine reading. This instead
    turns the page itself into that reading, in place, without covering anything and without
@@ -306,7 +308,22 @@
      Index the content blocks in document order and hand each one its place in the wave, so
      the change reads as something passing down the page. Because the offset is applied to the
      value rather than to an animation, a drag held halfway holds the wave halfway. */
+  /* Found here rather than beside the control it becomes, because the block indexing below
+     has to know whether this page's control is the frame. */
+  var frame = document.getElementById("reader-frame");
+  var frameTabs = frame && frame.querySelector(".frame-tabs");
+
   var blocks = Array.prototype.slice.call(main.querySelectorAll("section > .wrap > *"));
+  /* The homepage's frame is one of those blocks, and blocks get filter:grayscale. That would
+     put a filter on an ancestor of the control, which the stylesheet says never happens for a
+     good reason, and it drained the three reader dots of the colour that is the whole point of
+     them: measured 0 saturation on all three in both machine states. The frame's body carries
+     the index instead, so the panel greys with the page and the control does not. */
+  if (frameTabs) {
+    var fi = blocks.indexOf(frame);
+    var fbody = frame.querySelector(".frame-body");
+    if (fi > -1 && fbody) blocks[fi] = fbody;
+  }
   blocks.unshift(head.outer);
   blocks.unshift(resp.outer);
   blocks.forEach(function (b, i) {
@@ -361,30 +378,68 @@
     });
   }
 
-  /* ---------------- the control ---------------- */
+  /* ---------------- the control, in one of two presentations ----------------
+     The mechanism is identical on every page: one registered custom property, the same three
+     states, the same tween, keyboard and announcements. Only the object you touch differs.
+     On the homepage the reader frame IS the control, large and in the flow, because that page's
+     job is to teach the interaction that turns up as a small floating pill everywhere else.
+     Two presentations of one lens, not two lenses. */
+  var ctl, track, thumb, stops;
 
-  var ctl = el("div", "lens-ctl");
-  var track = el("div", "lens-track");
+  if (frameTabs) {
+    /* The frame's own row of stops becomes the slider. They arrive as spans carrying
+       .frame-tab, which is the markup's own presentation for the no-JavaScript case; taking
+       that class off is what hands them over, so the two rule sets never both apply. The row
+       itself takes the slider role, and nothing inside it is focusable, because a slider with
+       focusable children is two keyboard models fighting over one object. */
+    track = frameTabs;
+    stops = Array.prototype.slice.call(frameTabs.querySelectorAll(".frame-tab"));
+    stops.forEach(function (sp, i) {
+      sp.className = "lens-stop lens-stop-" + i + " frame-stop";
+      sp.setAttribute("aria-hidden", "true");
+      sp.removeAttribute("data-current");
+    });
+    thumb = el("div", "frame-thumb");
+    thumb.setAttribute("aria-hidden", "true");
+    frameTabs.insertBefore(thumb, frameTabs.firstChild);
+    /* The invite reads "Move this", which is only true once this code has run. The class is
+       what makes that sentence appear, so with JavaScript off the frame is a still picture of
+       three readers and never asks for a gesture it cannot receive. */
+    frame.classList.add("frame-live");
+    /* The dark ground the page crosses to. Built here rather than with the particle field,
+       because the field returns early when three.js is missing or reduced motion is asked for
+       and the palette crosses over on all three paths regardless. Ahead of the field in
+       z-index, not in DOM order, so it does not matter which file appends first. */
+    var ground = el("div", "lens-ground");
+    ground.setAttribute("aria-hidden", "true");
+    body.appendChild(ground);
+    ctl = frame;
+  } else {
+    ctl = el("div", "lens-ctl");
+    track = el("div", "lens-track");
+    thumb = el("div", "lens-thumb");
+    thumb.setAttribute("aria-hidden", "true");
+    track.appendChild(thumb);
+    STATES.forEach(function (name, i) {
+      /* Numbered explicitly. nth-child counted the thumb, which is appended first, so the
+         three dots were each one reader out and the AI dot fell off the end into the grey
+         fallback. */
+      var sp = el("span", "lens-stop lens-stop-" + i);
+      sp.setAttribute("aria-hidden", "true");
+      sp.appendChild(el("i", "lens-dot"));
+      sp.appendChild(document.createTextNode(name));
+      track.appendChild(sp);
+    });
+    ctl.appendChild(track);
+    body.appendChild(ctl);               /* a child of body: no ancestor carries a filter */
+    stops = Array.prototype.slice.call(track.querySelectorAll(".lens-stop"));
+  }
+
   track.tabIndex = 0;
   track.setAttribute("role", "slider");
   track.setAttribute("aria-label", "Read this page as a person, as Google, or as an AI assistant");
   track.setAttribute("aria-valuemin", "0");
   track.setAttribute("aria-valuemax", "2");
-  var thumb = el("div", "lens-thumb");
-  thumb.setAttribute("aria-hidden", "true");
-  track.appendChild(thumb);
-  STATES.forEach(function (name, i) {
-    /* Numbered explicitly. nth-child counted the thumb, which is appended first, so the three
-       dots were each one reader out and the AI dot fell off the end into the grey fallback. */
-    var s = el("span", "lens-stop lens-stop-" + i);
-    s.setAttribute("aria-hidden", "true");
-    s.appendChild(el("i", "lens-dot"));
-    s.appendChild(document.createTextNode(name));
-    track.appendChild(s);
-  });
-  ctl.appendChild(track);
-  body.appendChild(ctl);                 /* a child of body: no ancestor carries a filter */
-  var stops = track.querySelectorAll(".lens-stop");
 
   /* ---------------- state ---------------- */
 
@@ -466,6 +521,7 @@
         s.setAttribute("aria-pressed", i === near ? "true" : "false");
       });
     }
+    dispatchEvent(new CustomEvent("lens:change", { detail: { value: v } }));
     if (anchor) {
       /* Pinned to where the anchor started, not nudged by this frame's delta. A per frame
          delta lets error accumulate: anything that moves the page between two frames, a font
@@ -524,31 +580,64 @@
 
   /* ---------------- pointer: tap to a stop, drag to scrub ---------------- */
 
+  /* A drag maps against the rectangle the gesture started with, not the live one. The
+     homepage's control is in the flow, inside the hero's .wrap, and the AI state narrows every
+     .wrap to 74ch: crossing that threshold mid drag moved the track 183px sideways and 218px
+     down under the finger, and because this read the live rect the same pointer position that
+     meant 1.54 a frame earlier now meant 1.85. Everything above about 1.6 was unreachable.
+     A tap still measures against the live rect, which is what a tap should do. */
+  var dragRect = null;
   function valueAt(clientX) {
-    var r = track.getBoundingClientRect();
+    var r = dragRect || track.getBoundingClientRect();
     if (!r.width) return value;
     /* the thumb is a third wide, so its centre travels between 1/6 and 5/6 of the track */
     var v = ((clientX - r.left) / r.width - 1 / 6) * 3;
     return Math.max(0, Math.min(2, v));
   }
 
-  var dragging = false, moved = false, downX = 0;
+  var dragging = false, moved = false, downX = 0, downY = 0, locked = false;
+
+  /* A finger that starts on the control is not necessarily reaching for it. The homepage's
+     control is a full width bar in the middle of the hero, so the first thing a reader is
+     likely to do on it is scroll past it. Touch therefore waits: the gesture belongs to the
+     browser until it proves itself sideways, and the moment it proves itself vertical this
+     lets go of it completely. Without that, an upward swipe anywhere on the bar scrolled
+     nothing, because every frame of it was scrubbing the lens and the anchor was dutifully
+     putting the page back where it found it. A mouse or a pen commits immediately: those have
+     no scroll gesture to be confused with. */
+  function abandonDrag() {
+    dragging = false; locked = false; dragRect = null;
+    ctl.classList.remove("dragging");
+    anchor = null;
+    holdScroll(false);
+  }
 
   track.addEventListener("pointerdown", function (e) {
-    dragging = true; moved = false; downX = e.clientX;
+    dragging = true; moved = false; downX = e.clientX; downY = e.clientY;
+    locked = e.pointerType !== "touch";
+    dragRect = track.getBoundingClientRect();
     ctl.classList.add("dragging");
-    track.setPointerCapture(e.pointerId);
     cancelAnimationFrame(raf);
     cancelAnimationFrame(settleRaf);
     gen++;
     grabAnchor();
     holdScroll(true);
-    e.preventDefault();
+    /* Captured either way, so a tap that never moves still reaches pointerup here rather than
+       being cancelled out from under itself. preventDefault is for the mouse only: on touch it
+       is touch-action and the direction test below that decide, not this. */
+    track.setPointerCapture(e.pointerId);
+    if (locked) e.preventDefault();
   });
 
   track.addEventListener("pointermove", function (e) {
     if (!dragging) return;
-    if (Math.abs(e.clientX - downX) > 3) moved = true;
+    var dx = e.clientX - downX, dy = e.clientY - downY;
+    if (!locked) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { abandonDrag(); return; }
+      if (Math.abs(dx) > 8) locked = true;
+      else return;
+    }
+    if (Math.abs(dx) > 3) moved = true;
     if (!moved) return;
     if (reduced) { target = Math.round(valueAt(e.clientX)); apply(target); return; }
     target = valueAt(e.clientX);
@@ -557,16 +646,23 @@
 
   function endDrag(e) {
     if (!dragging) return;
-    dragging = false;
+    dragging = false; locked = false;
     ctl.classList.remove("dragging");
     var target = Math.round(moved ? value : valueAt(e.clientX));
+    dragRect = null;
     anchor = null;
     tweenTo(target);
     track.focus();
   }
   track.addEventListener("pointerup", endDrag);
+  /* The browser cancels the pointer when it decides the gesture was a scroll after all. That
+     is not a state change: only settle to a stop if the drag had actually started moving the
+     value before it was taken away. */
   track.addEventListener("pointercancel", function () {
-    dragging = false; ctl.classList.remove("dragging"); anchor = null; tweenTo(Math.round(value));
+    if (!dragging) return;
+    var wasMoved = moved;
+    abandonDrag();
+    if (wasMoved) tweenTo(Math.round(value));
   });
 
   track.addEventListener("keydown", function (e) {

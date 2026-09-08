@@ -65,34 +65,27 @@
         <div class="frame-chrome">
           <span class="req">GET <b>nathanhaslewood.com.au/</b> · <span class="status">200 OK</span> · text/html · rendered server-side</span>
         </div>
-        <div class="frame-scan" aria-hidden="true"></div>
-        <div class="frame-tabs" role="tablist" aria-label="View this page as each of its three readers">
-          <button role="tab" data-reader="person" aria-selected="true" aria-controls="panel-person" id="tab-person"><span class="dot" aria-hidden="true"></span>A person</button>
-          <button role="tab" data-reader="google" aria-selected="false" aria-controls="panel-google" id="tab-google" tabindex="-1"><span class="dot" aria-hidden="true"></span>Google</button>
-          <button role="tab" data-reader="ai" aria-selected="false" aria-controls="panel-ai" id="tab-ai" tabindex="-1"><span class="dot" aria-hidden="true"></span>An AI assistant</button>
+        <p class="frame-invite"><b>Move this.</b> The whole page becomes what each reader receives.</p>
+        <div class="frame-tabs">
+          <span class="frame-tab" data-reader="person" data-current><span class="dot" aria-hidden="true"></span>A person</span>
+          <span class="frame-tab" data-reader="google"><span class="dot" aria-hidden="true"></span>Google</span>
+          <span class="frame-tab" data-reader="ai"><span class="dot" aria-hidden="true"></span>An AI assistant</span>
         </div>
         <div class="frame-body">
-          <div class="frame-panel panel-person active" id="panel-person" role="tabpanel" aria-labelledby="tab-person">
+          <div class="frame-panel panel-person active" id="panel-person">
             <h2>Reader one: a person. That's you.</h2>
             <p>This page was written for you first. Everything on it is a verifiable claim about work I have shipped: product pages that still rank first in Google two years on, information architecture that moved bank revenue, production AI systems running without me.</p>
-            <p>Now try the other two tabs. They rebuild this page, live, the way a search crawler and an AI assistant each receive it. Most corporate sites fail those two views. This one is built to pass them.</p>
+            <p class="live-only">The control above rebuilds this whole page, live, the way a search crawler and an AI assistant each receive it. Most corporate sites fail those two readings. This one is built to pass them.</p>
+            <p class="static-only">This page is also written to be read by a search crawler and by an AI assistant. Most corporate sites fail those two readings. This one is built to pass them.</p>
             <div class="quicklinks">
               <a class="btn ghost" href="/work/">The work</a>
               <a class="btn ghost" href="/systems/">The systems</a>
               <a class="btn ghost" href="/writing/">The thinking</a>
             </div>
           </div>
-          <div class="frame-panel" id="panel-google" role="tabpanel" aria-labelledby="tab-google">
-            <dl class="kv"></dl>
-          </div>
-          <div class="frame-panel panel-ai" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai">
-            <div class="log" aria-hidden="true"></div>
-            <pre></pre>
-            <p class="note">This site also publishes <a href="/llms.txt">/llms.txt</a> and <a href="/are-you-ai/">a page written for you</a>, if you're the third reader.</p>
-          </div>
         </div>
       </div>
-      <p class="frame-caption">Every panel above is generated at runtime from this page's actual markup. Nothing is mocked. <a href="/colophon/">How this site is built for three readers →</a></p>
+      <p class="frame-caption">Both machine readings are generated at runtime from this page's own markup. Nothing is mocked. <a href="/colophon/">How this site is built for three readers →</a></p>
     </div>
   </section>
 
@@ -286,6 +279,7 @@
 </footer>
 
 <script src="/assets/js/site.js" defer></script>
+<script src="/assets/js/lens.js" defer></script>
 <script src="/assets/js/background-canvas.js" defer></script>
 </body>
 </html>

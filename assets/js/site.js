@@ -109,43 +109,10 @@ document.documentElement.classList.add("js");
     pre.textContent = text;
   }
 
-  /* ---------- the homepage reader frame ---------- */
+  /* The homepage reader frame no longer renders machine views into panels inside itself.
+     It is the lens control now, wired in lens.js, and the whole page is the output. The
+     builders below stay: the reader pill on every other page still uses them. */
   var frame = document.getElementById("reader-frame");
-  if (frame) {
-    var tabs = frame.querySelectorAll(".frame-tabs button");
-    var panels = {
-      person: frame.querySelector("#panel-person"),
-      google: frame.querySelector("#panel-google"),
-      ai: frame.querySelector("#panel-ai")
-    };
-    var built = { google: false, ai: false };
-
-    function select(name) {
-      tabs.forEach(function (t) {
-        var on = t.dataset.reader === name;
-        t.setAttribute("aria-selected", on ? "true" : "false");
-        t.tabIndex = on ? 0 : -1;
-      });
-      Object.keys(panels).forEach(function (k) {
-        panels[k].classList.toggle("active", k === name);
-      });
-      if (name === "google" && !built.google) { buildGoogleInto(panels.google.querySelector(".kv"), frame); built.google = true; }
-      if (name === "ai" && !built.ai) { buildAIInto(panels.ai, frame); built.ai = true; }
-      if (!reduced) {
-        frame.classList.remove("scanning");
-        void frame.offsetWidth;
-        frame.classList.add("scanning");
-      }
-    }
-    tabs.forEach(function (t, i) {
-      t.addEventListener("click", function () { select(t.dataset.reader); });
-      t.addEventListener("keydown", function (e) {
-        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-        var next = e.key === "ArrowRight" ? (i + 1) % tabs.length : (i - 1 + tabs.length) % tabs.length;
-        tabs[next].focus(); select(tabs[next].dataset.reader);
-      });
-    });
-  }
 
   /* ---------- site-wide reader pill (every page without the hero frame) ----------
      A page can opt out with data-no-reader-pill on <body>. /games/ does, because the pill
