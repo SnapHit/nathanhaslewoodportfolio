@@ -33,6 +33,19 @@
    cost the v1.10.0 particle field, proven then with full opacity red nobody could see. Every
    page renders identically, because html now paints exactly what body used to. */
 html{scroll-behavior:smooth;background:var(--paper)}
+/* v1.23: the homepage's ground, and the only place it can live.
+   It cannot be body's, which is the v1.10.0 bug written out a third time: body does not create
+   a stacking context, so its background paints with the in-flow block backgrounds, ABOVE the
+   negative z-index fixed layers, and an opaque one hides the particle field completely. The
+   root element's background is propagated to the canvas and painted before everything, so a
+   layer at z-index -4 still sits on top of it. It cannot be a layer built by script either:
+   with JavaScript off there is no lens and no field, and the page is the person state, so the
+   ground has to be there before anything runs. That leaves the root element, scoped by a class
+   on <html> that only index.html carries, which is why /work/, /book/ and the rest keep paper.
+
+   Warm, not neutral. This is the person state's ground and the machine states cross to the
+   cold one on .lens-ground. */
+html.home{background:var(--panel)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:transparent;color:var(--ink);
@@ -126,6 +139,17 @@ strong{font-weight:600}
 /* ---------- reader frame (signature) ---------- */
 .frame{border:1px solid var(--ink);border-radius:14px;overflow:hidden;margin:2.7rem 0 .9rem;background:#fff;box-shadow:0 16px 44px -22px rgba(23,20,16,.4);color:var(--ink)}
 .home .frame{border-color:#000;box-shadow:0 30px 70px -30px rgba(0,0,0,.8)}
+/* Both of those were chosen when the frame was a white card on paper, and both vanish on the
+   dark page: #000 reads 1.19:1 against the frame's own ground and 1.10:1 against the page, and
+   a black drop shadow on near black is nothing at all. The card lift alone is 1.066:1, which
+   is a step you can see but not an edge. The border is drawn from the ink instead, so it
+   crosses warm to cold with everything else and the control still reads as an instrument
+   rather than as page. The shadow goes: it was doing no work and it was the wrong instinct
+   for a dark ground, where an object is separated by a lighter edge, not a darker one. */
+body.home main .frame{
+  border-color:color-mix(in srgb,var(--ink) 24%,transparent);
+  box-shadow:none;
+}
 .frame-chrome{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem;padding:.66rem 1rem;border-bottom:1px solid var(--line);background:var(--paper)}
 .frame-chrome .req{font-family:var(--mono);font-size:.72rem;color:var(--ink-2);display:flex;gap:.9em;flex-wrap:wrap}
 .frame-chrome .req b{color:var(--ink);font-weight:500}
@@ -258,7 +282,13 @@ a.row:hover::after{color:var(--ink);transform:translateX(4px)}
 .tile.readers .dots span{width:.8rem;height:.8rem;border-radius:50%}
 .tile.readers p{margin:0;font-family:var(--mono);font-size:.72rem;color:var(--panel-dim);letter-spacing:.04em}
 a.tile{text-decoration:none}
-.tile .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(19,17,9,.82));color:#fff;font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:1.6rem .9rem .7rem;text-transform:uppercase}
+/* The scrim reaches full strength before the words start, not at the bottom of the box. A
+   plain gradient over the whole box is only about .38 opaque where the first row of glyphs
+   sits, and on the photograph tile that left white capitals on a light image: measured 2.17:1
+   at 390px and 3.11:1 at 1280px on v1.22.0, and still 3.41:1 on the photograph after v1.23.0
+   darkened the tiles around it. The top pad is 1.6rem of a box about 3.5rem tall, so the stop
+   is placed just above where the text begins. */
+.tile .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(19,17,9,.93) 42%,rgba(19,17,9,.93));color:#fff;font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:1.6rem .9rem .7rem;text-transform:uppercase}
 @media (max-width:860px){.bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px}.tile.photo,.tile.cover{grid-column:span 1;grid-row:span 2}.tile.wide{grid-column:span 2}}
 
 /* badges strip */
@@ -1198,6 +1228,28 @@ html.lens-anchoring{scroll-behavior:auto}
   margin-left:calc(var(--g) * .5ch);
 }
 
+/* The destination carries its own ground on the homepage, and .lens-alt below is the precedent:
+   an annotation is never read against whatever it happens to land on. It needs one here because
+   it cannot be kept inside the text column. It is appended INSIDE its link, and one of this
+   page's links is right aligned and white-space:nowrap in a flex row, so the annotation widens
+   that link's min-content and pushes it past the column edge, into the gutter the veil opens
+   for the field. Measured 1.92:1 at 390px in the Google state and 1.95 in the AI state, against
+   a solid white field. Capping its width cannot fix it: with the heading's own min-content
+   taking 125px of a 350px column, anything past about five characters overflows. A ground it
+   carries with it works wherever it lands, and costs no layout.
+
+   Scoped to the homepage because that is where a particle field can be behind it. /book/ runs
+   the same lens with no field, so it keeps the plain annotation and is untouched. */
+body.home .lens-href{
+  background:color-mix(in srgb,var(--paper) 92%,transparent);
+  padding:0 .28ch;border-radius:3px;
+}
+/* Except inside a solid button, which already carries its own opaque ground: there the chip is
+   a near black box printed inside an orange button, and the reason .lens-href takes
+   currentColor in the first place, three rules up, is so that it sits in whatever its link is.
+   A ghost button has no background of its own, so it keeps the chip. */
+body.home .btn.solid .lens-href{background:none;padding:0}
+
 /* ---- imagery gives way to its own alt text ---- */
 .lens-fig{position:relative;display:block}
 .lens-fig > img{opacity:calc(1 - var(--g))}
@@ -1368,25 +1420,28 @@ html.lens-anchoring{scroll-behavior:auto}
    The lens core is shared with /book/; only the presentation differs. */
 
 body.home{
-  /* The field's spread, which is continuous. */
+  /* A plain default as well as the registered one. @property --lens gives it an initial value
+     of 0, but @property is not everywhere, and with JavaScript off nothing writes --lens: on a
+     browser without it, --gp would be invalid, every token below would fall back to the :root
+     light palette, and the page would be near black ink on the near black ground html.home
+     paints. A normal declaration costs nothing and lens.js's inline style still wins over it. */
+  --lens:0;
+  /* The field's spread, and now the palette with it. Both are continuous.
+
+     v1.21.0 to v1.22.1 had a --gpal here, a step, because the page went from paper to near
+     black and back: two colours that swap places have to pass through each other, and halfway
+     through a drag the page was dark grey text on a dark grey card, measured 1.08:1 on the
+     section headings and as low as 1.1:1 on a case study heading. There is no continuous path
+     out of that, so it stepped at the middle and everything else moved around it.
+
+     Nothing swaps places any more. v1.23.0 made the person state dark, so both ends of the
+     range are light text on a near black ground and the only thing crossing is the temperature
+     of both: a warm near black to a cold one, and a warm off white to a cold one. Two near
+     blacks have no midpoint to collapse into and neither do two near whites, so the palette
+     can move with the field instead of jumping past it, and the ground shift is now part of
+     the drag rather than an event in the middle of it. The step is gone, and so is the reason
+     it existed. */
   --gp:clamp(0, var(--lens), 1);
-  /* The palette, which cannot be. Ink and paper both cross the middle of the range if they
-     are interpolated, so at the halfway point of a drag the page was dark grey text on a dark
-     grey card: measured 1.08:1 on the section headings and 1.37:1 on body copy, across about
-     38% of the control's travel. There is no continuous path out of that. Two colours that
-     swap places have to pass through each other, and this site already learned it once on the
-     chapter label in v1.20.1, which was fixed the same way. So the palette steps at the middle
-     and everything else, the field, the tags, the annotations, the spread, keeps moving
-     around it. Multiplying by 1000 makes the ramp 0.001 of a lens unit wide, which no frame
-     can land inside. */
-  /* A real step, which v1.21.0's was not. Multiplying by a thousand leaves a ramp a thousandth
-     of a lens unit wide, and lens.js writes the value to four decimal places, so a drag CAN
-     land inside it and get exactly the mid grey collapse the step exists to prevent: measured
-     11.09:1 and as low as 1.1:1 on the case study heading, on v1.21.0 as well as here. A
-     million makes the ramp a millionth wide, narrower than any value the control can write, so
-     the only reachable readings are 0 and 1. Offset so it flips on the same value as the
-     lens-goog class, which lens.js turns on at v >= 0.5. */
-  --gpal:clamp(0, calc((var(--lens) - .49995) * 1000000), 1);
 }
 
 /* The dark ground. It is built by lens.js, not by background-canvas.js, which is the whole
@@ -1403,16 +1458,24 @@ body.home{
    in the same stacking context order by z-index, which is what this is. */
 .lens-ground{
   position:fixed;inset:0;z-index:-4;pointer-events:none;
-  background:var(--panel);opacity:var(--gpal);
+  /* The machine ground, over the warm one the root element paints. #04070e is the arcade's
+     near black, already in the site's vocabulary on /games/, and it is colder and darker than
+     --panel: L 0.0021 against 0.0056. Fading it in IS the peel's ground signal now that both
+     ends are dark, and it fades rather than steps because there is no midpoint between two
+     near blacks to fall into. */
+  background:#04070e;opacity:var(--gp);
 }
 /* The field itself. A direct child of body so no ancestor filter can turn position:fixed into
    position:absolute-against-that-ancestor and let it scroll away. */
 .lens-field{
   position:fixed;inset:0;z-index:-2;pointer-events:none;
-  /* JS writes the hero's live top and bottom here, so the field is confined to the hero at
-     rest and opens to the whole viewport as the lens moves. That opening is the spill. */
-  clip-path:inset(calc(var(--field-top,0px) * (1 - var(--gp))) 0
-                  calc(var(--field-bottom,0px) * (1 - var(--gp))) 0);
+  /* No clip. From v1.21.0 to v1.22.1 this was inset to the hero's live edges at rest and
+     opened to the viewport as the lens moved, which is what "the spill" meant. It could be
+     that only while the rest of the page was paper: a field over paper is invisible, so
+     confining it to the dark band was the same thing as showing it. With the page dark at
+     every value there is nowhere it has to hide, and confining it would now mean deliberately
+     withholding it from nine tenths of the page. What is left of the spread is the cloud
+     itself growing, which background-canvas.js scales on the same value. */
 }
 .lens-field canvas{display:block;width:100%;height:100%}
 
@@ -1434,18 +1497,18 @@ body.home{
    "dense where text is, open where it is not" without needing mask-composite and its patchier
    support.
 
-   It is a CHILD of the field, not a sibling, so it inherits the field's clip-path and cannot
-   paint anywhere the field is absent. That is not tidiness. As a sibling it had to carry its
-   own copy of the spill geometry, and the two copies disagreed: at lens 0.3, scrolled past the
-   hero, the field's clip removed all of it while the veil still covered the whole viewport at
-   .90, so the page went black under a palette that is still light. Dark ink on black, 2.06:1,
-   and a drag can hold that value for as long as it likes. A shape that has to agree with
+   It is a CHILD of the field, not a sibling, so its extent is the field's own, which since
+   v1.23.0 is simply the viewport. That is not tidiness. While the field was clipped to the
+   hero, a sibling veil had to carry its own copy of that geometry, and the two copies
+   disagreed: at lens 0.3, scrolled past the hero, the field's clip removed all of it while the
+   veil still covered the whole viewport at .90, so the page went black under a palette that
+   was still light. Dark ink on black, 2.06:1, and a drag can hold that value for as long as it
+   likes. The clip is gone, but the rule it taught is not: a shape that has to agree with
    another shape will eventually not.
 
    Being a child makes it viewport positioned, and the mask has to be in document coordinates
    or it slides over the text as the page scrolls. So the mask is sized to the document and
-   offset by the scroll position, written in the same handler that moves the field's clip, so
-   those two can never be a frame apart from each other.
+   offset by the scroll position, in the same scroll handler, with no layout read.
 
    Alpha over text is .90. It is measured against a solid white field, the worst an additive
    blend can produce: the hero copy reads 3.81:1 at .80, 4.68:1 at .86 and 5.36:1 at .90. */
@@ -1519,34 +1582,59 @@ body.home .hero{background:transparent}
    the same depth as the field, later in the document, painted straight over it and the amber
    went out. It is the hero's dark ground while the page is light, and it steps out with the
    palette because by then the ground behind it is the same colour. */
-body.home .hero-media{z-index:-3;opacity:calc(1 - var(--gpal))}
+body.home .hero-media{z-index:-3;opacity:calc(1 - var(--gp))}
 body.home .hero-media.webgl-on{background:var(--panel)}
 body.home .hero .wrap{position:relative;z-index:1}
 
-/* The page text crosses to the dark palette on the same value. Tokens rather than rules, so
-   every section, card and border comes along without being rewritten one at a time. */
+/* v1.23: the homepage is dark at every value of the lens, and what crosses is temperature.
+   The warm end is the site's own panel vocabulary, the one the hero, the footer and every
+   dark panel already use. The cold end is the arcade's, from /games/. Neither is new, and
+   there is no second dark theme here: this is the two the site already had, joined up.
+
+   Tokens rather than rules, so .section, .row, .card, .stats, .prose and the rest come along
+   without being rewritten one at a time. */
 body.home main{
-  --ink:color-mix(in srgb,#171410 calc((1 - var(--gpal)) * 100%),#EFEBE2);
-  --ink-2:color-mix(in srgb,#57534A calc((1 - var(--gpal)) * 100%),#9C968A);
-  --line:color-mix(in srgb,#E6E1D6 calc((1 - var(--gpal)) * 100%),#26221A);
-  --paper:color-mix(in srgb,#FBFAF6 calc((1 - var(--gpal)) * 100%),#131109);
-  --ok:color-mix(in srgb,#177A4C calc((1 - var(--gpal)) * 100%),#1FB878);
+  --ink:color-mix(in srgb,#EFEBE2 calc((1 - var(--gp)) * 100%),#e8eef6);
+  --ink-2:color-mix(in srgb,#9C968A calc((1 - var(--gp)) * 100%),#9fb3c8);
+  --line:color-mix(in srgb,#26221A calc((1 - var(--gp)) * 100%),rgba(120,160,195,.20));
+  --paper:color-mix(in srgb,#131109 calc((1 - var(--gp)) * 100%),#04070e);
+  --ok:color-mix(in srgb,#1FB878 calc((1 - var(--gp)) * 100%),#5fe08a);
   color:var(--ink);
 }
-/* Cards carry their own #fff and would stay lit islands on a dark page. The two cards the
-   lens injects, the head material and the response, were the worst of them: white card, near
-   white text, 1.19:1 on every value it reports, and that card IS the Google reading. */
+/* Every card on this page carries its own #fff, so each one would be a lit island. They take
+   a ground lifted off the page's instead, warm to cold with everything else: #1b1811 is what
+   the machine states already used, and #0c1017 is about the same lift off the cold ground
+   that #1b1811 is off the warm one: 1.058 against 1.066 in luminance.
+   The two the lens injects, the head material and the response,
+   were the worst of the white ones: white card, near white text, 1.19:1 on every value they
+   report, and that card IS the Google reading. */
 body.home main .frame,
 body.home main .frame-tabs,
 body.home main .lens-head-in,body.home main .lens-resp-in{
-  background:color-mix(in srgb,#fff calc((1 - var(--gpal)) * 100%),#1b1811)}
+  background:color-mix(in srgb,#1b1811 calc((1 - var(--gp)) * 100%),#0c1017)}
 body.home main .tile,body.home main .card,body.home main .stat,
-body.home main .ticker,body.home main .stats > div{
-  background:color-mix(in srgb,#fff calc((1 - var(--gpal)) * 100%),#1b1811)}
-/* Cobalt is the right blue on paper and 2.75:1 on a dark ground. Both the tags and the cards'
-   own captions cross to the lit blue with everything else. */
-body.home main .lens-tag,body.home main .lens-cap{
-  color:color-mix(in srgb,var(--index) calc((1 - var(--gpal)) * 100%),var(--index-c))}
+body.home main .ticker,body.home main .stats > div,
+body.home main .quote{
+  background:color-mix(in srgb,#1b1811 calc((1 - var(--gp)) * 100%),#0c1017)}
+/* Cobalt is the right blue on paper and 2.75:1 on a dark ground, and this page has no paper
+   left on it. Both the tags and the cards' own captions take the lit variant outright. */
+body.home main .lens-tag,body.home main .lens-cap{color:var(--index-c)}
+/* .band is the one content block that paints --panel directly rather than through the tokens,
+   so without this it stays warm while the ground and every card around it go cold. Its own
+   contrast was never in question, --panel-ink on --panel is 15.9:1 at both ends; it is the
+   temperature that was inconsistent, in the one state this version is built around. */
+body.home main .band{background:color-mix(in srgb,#131109 calc((1 - var(--gp)) * 100%),#04070e)}
+/* A row's hover was #fff, which on paper is a lift and on near black is a flashbulb. It
+   becomes the same lift the cards have, expressed off whatever the ground currently is. */
+body.home main a.row:hover{background:color-mix(in srgb,var(--ink) 9%,transparent)}
+/* ::selection resolves var() against the originating element, so the --paper override above
+   would paint selected text near black on the orange highlight, 3.59:1. Pinned, the way
+   body.arcade pins it, at 5.05:1. */
+body.home ::selection{color:#FBFAF6}
+/* The skip link is a focus affordance before it is anything else. background:var(--ink) is
+   near black on paper, which on a near black page is an invisible box holding legible text.
+   Inverted, the way body.arcade inverts .hero-skip. */
+body.home .skip{background:#EFEBE2;color:#171410}
 /* The hero band is dark at every value, not only once the palette has crossed, so a tag in it
    is cobalt on near black from the first frame of the band: 2.29:1 held at a quarter open. It
    takes the lit blue immediately. In the AI state every tag inherits the body colour, and that

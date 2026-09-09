@@ -1,6 +1,6 @@
 /* background-canvas.js
    The WebGL particle field. It reads --lens, the same value the control writes and the page
-   reads, so its colour, its density, its links and how far it spreads out of the hero are all
+   reads, so its colour, its density, its links and how far the cloud spreads are all
    one event rather than three that happen to coincide.
 
    Motion is composed of three independent layers, which is what lets the formation change be
@@ -10,9 +10,11 @@
      drift  . continuous per particle wander, so the field never settles into a still image
      repel  . a springing displacement pushing particles away from the pointer
 
-   Mounts two layers at body level: the field and the veil above it. The dark ground the page
-   crosses to is NOT built here, it is body's own background in the stylesheet, because it has
-   to exist in the cases this file returns early on. Those cases are:
+   Mounts two layers at body level: the field and the veil above it. Neither ground is built
+   here, because both have to exist in the cases this file returns early on: the page's own
+   near black is painted by html.home in the stylesheet, and the cold one the machine states
+   cross to is .lens-ground, built by lens.js, which runs on every one of those paths. Those
+   cases are:
      . three.js unavailable (CDN blocked or failed)
      . WebGL unavailable
      . prefers-reduced-motion: reduce
@@ -56,7 +58,7 @@
   host.className = 'lens-field';
   host.setAttribute('aria-hidden', 'true');
   /* The veil. A CHILD of the field, after the canvas, so it paints over the particles and
-     inherits the field's clip-path: it cannot darken anywhere the field is absent. It was a
+     is exactly the field's own extent, which is the viewport, and always was. It was a
      body level sibling for one version, carrying its own copy of the spill geometry, and the
      two copies disagreed badly enough to black out the page. The shape it carries is the shape
      of the text, which scrolls, so the mask is sized to the document and offset by the scroll
@@ -75,33 +77,27 @@
      through the hero copy. */
   var heroMedia = document.querySelector('.hero-media');
   if (heroMedia) heroMedia.classList.add('webgl-on');
-  /* Sized to the viewport, always. The clip decides how much of it you can see. */
+  /* Sized to the viewport, always, and since v1.23.0 seen at that size in every state. */
   function hostSize() {
     return { w: Math.max(1, window.innerWidth), h: Math.max(1, window.innerHeight) };
   }
 
-  /* The field is confined to the hero at rest and opens to the whole viewport as the lens
-     moves. Writing the hero's live edges lets CSS interpolate the opening, so the spill is one
-     animation on the same value as everything else rather than a separate effect. */
-  function clipToHero() {
-    var r = hero.getBoundingClientRect();
-    var top = Math.max(0, r.top);
-    var bottom = Math.max(0, window.innerHeight - r.bottom);
-    host.style.setProperty('--field-top', top + 'px');
-    host.style.setProperty('--field-bottom', bottom + 'px');
-    /* The mask travels with the document while the element it is on is fixed to the viewport,
-       which is what keeps the dark bands over the text rather than sliding across it. Written
-       here, in the same handler and the same frame as the clip, so the veil's extent and the
-       veil's shape can never be a frame apart. It is one property write, no layout read. */
+  /* The mask travels with the document while the element it is on is fixed to the viewport,
+     which is what keeps the dark bands over the text rather than sliding across it. This used
+     to also write the hero's live edges for the field's clip, which is gone in v1.23.0: with
+     the page dark at every value the field has nowhere it needs to hide, so it covers the
+     viewport in every state and there is nothing left to clip. One property write, and it
+     still reads no layout. */
+  function syncVeil() {
     veil.style.webkitMaskPosition = maskPos();
     veil.style.maskPosition = maskPos();
   }
   function maskPos() {
     return '0 ' + -(window.pageYOffset || document.documentElement.scrollTop || 0) + 'px';
   }
-  clipToHero();
-  addEventListener('scroll', clipToHero, { passive: true });
-  addEventListener('resize', clipToHero, { passive: true });
+  syncVeil();
+  addEventListener('scroll', syncVeil, { passive: true });
+  addEventListener('resize', syncVeil, { passive: true });
 
   /* ---- the veil's shape, taken from the text rather than assumed ----
      The veil's horizontal shape is in the stylesheet and always was. This is the vertical one,
@@ -135,7 +131,18 @@
      margin is a pixel of field nobody sees. */
   var MASK_PAD = 8;         /* solid this far past the band, for antialiasing and rounding */
   var MASK_FEATHER = 40;    /* the most one edge may soften over */
-  var MASK_MERGE = 10;      /* a gap this small is not worth opening, so the bands join */
+  /* A gap this small is not worth opening, so the bands join. Ten was too generous once the
+     lens's own annotation blocks were measured: in the AI state the head material card drops
+     its background entirely, by design, so those blocks sit straight on the field, and two of
+     them in a row leave about 30px between their text runs, 14px of it once the pad is taken
+     off. That opened, and the block's left rule landed in it at 1.45:1 against a solid white
+     field. Twenty closes every gap that is only the padding and margin between two parts of
+     one card, and leaves the gaps that are actually empty page. Measured at ten against twenty
+     over six frames, the field's lit area moves by about half a percentage point and not
+     consistently in one direction: the person state reads 6.51 against 5.82 per cent at 390px
+     and 6.87 against 7.26 at 1280px. That is the frame to frame variation of a field that is
+     still drifting, so the cost is not distinguishable from noise. */
+  var MASK_MERGE = 20;
   var maskRaf = 0, lastMask = '', lastSize = '';
 
   function px(v) { return Math.round(v) + 'px'; }
@@ -226,7 +233,7 @@
   addEventListener('resize', shapeSoon, { passive: true });
   addEventListener('lens:change', shapeSoon);
   /* And on scroll. Not because the mask moves with the scroll, which the mask offset written
-     in clipToHero already handles, but because the page changes shape as you go down it: the
+     in syncVeil already handles, but because the page changes shape as you go down it: the
      reveals settle, images arrive, and the lens re measures its cards when its fetch resolves.
      A mask built before any of that and never rebuilt read 0.604 alpha at a paragraph's own
      top edge and 3.53:1 against a white field. Scroll is the cheapest signal that a reader has
@@ -234,6 +241,28 @@
      every run of text in main, a little over two hundred of them, and measures 0.8 to 2.5ms,
      so it is rAF throttled and never runs twice in a frame. */
   addEventListener('scroll', shapeSoon, { passive: true });
+  /* And when something finishes moving. The reveals start at translateY(14px) and settle over
+     .55s, and getClientRects() reports the transformed position, so a mask built during that
+     window puts the band up to fourteen pixels below where the text ends up: the element's own
+     top then sits on the mask's ramp instead of on its plateau. Measured 0.626 alpha at the
+     top edge of a case study tag, and 3.15:1 against a solid white field where the plateau
+     gives 5.36. Nothing else caught it. A transform does not change main's size, so the
+     ResizeObserver never fires, and a reveal that settles without a further scroll left the
+     mask wrong until the reader moved again. transitionend bubbles, so one listener on main is
+     every reveal and every card that lifts on hover, and it is filtered to the two properties
+     that can actually move a glyph. */
+  /* Filtered by target as well as by property. The property test alone caught every card,
+     tile and stat that lifts on hover, so a pointer crossing the bento grid scheduled a mask
+     rebuild on every hover edge, and a rebuild walks every run of text in main at 0.8 to
+     2.5ms. Those lifts are 3px, which the band's own 8px of pad absorbs, so the rebuild bought
+     nothing. The reveals are the transitions that actually move text, by fourteen pixels. */
+  var REVEALS = '.reveal,[data-stagger],[data-stagger] > *,.diagram';
+  function onSettle(e) {
+    if (e.propertyName !== 'transform' && e.propertyName !== 'opacity') return;
+    var t = e.target;
+    if (t && t.matches && t.matches(REVEALS)) shapeSoon();
+  }
+  main.addEventListener('transitionend', onSettle);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(shapeSoon).catch(function () {});
   /* main changes height on its own as well: images arrive, the lens opens its cards, and the
      AI state reflows the whole document. */
@@ -272,8 +301,8 @@
      computed for nothing.
 
      The count went up in v1.22.1, 200 to 280 below 700px and 380 to 500 above. Person is the
-     reason: it is the one state whose field is confined to the hero, and the hero is a wall of
-     text, so almost all of the light it makes lands under the veil and is spent. The count is
+     reason: until v1.23.0 its field was confined to the hero, and the hero is a wall of text,
+     so almost all of the light it made landed under the veil and was spent. The count is
      one buffer, so this lifts all three states. What is per state is the point size below,
      which is where the person state gets the rest of its light without pushing the other two
      any further. Measured at 390px in the hero band, that takes the share of it that is lit
@@ -340,12 +369,17 @@
      linear text and nothing else; a swarming field behind that contradicts the point. It is
      also the state with the most text on screen, so it is the worst place to put light. */
   var POINT_OPACITY = { person: 0.95, google: 0.75, ai: 0.28 };
-  /* Point size is per state for the same reason opacity is. The person state is the one whose
-     field is confined to the hero, and the hero is a wall of text, so the veil is over almost
-     all of it and most of the light it makes is spent. Google and AI are page wide and have
-     the document's own gaps to shine through, so they need less. One material, so this is
-     written per frame from the same mix as everything else rather than set once. */
-  var POINT_SIZE = { person: 3.4, google: 2.4, ai: 2.4 };
+  /* Point size is per state, and in v1.23.0 the person state wants the SMALLEST of the three,
+     which is the reverse of what v1.22.1 had it at. The reason is density rather than taste.
+     The spread scales the group by 1 to 1.35, and the person state is the unscaled end, so its
+     cloud covers 1.35 squared less screen for the same particle count: about 1.8 times the
+     areal density of the other two, and its points are the most opaque as well at .95 against
+     .75. While the field was clipped to the hero none of that showed. Page wide it does, and at
+     the size the clipped version needed it stopped reading as points and started reading as
+     fog: measured 21.4 per cent of the viewport lit at 3.4 against Google's 3.3, and visibly
+     a haze under the body copy rather than light behind it. One material, so this is written
+     per frame from the same mix as everything else rather than set once. */
+  var POINT_SIZE = { person: 1.9, google: 2.4, ai: 2.4 };
 
   function lensValue() {
     var v = parseFloat(getComputedStyle(document.body).getPropertyValue('--lens'));
@@ -599,38 +633,25 @@
   }
   animate(0);
 
-  /* Pause once the hero leaves the viewport, but only while the field is still confined to
-     the hero. Once it has spread across the page there is no hero to leave, so the only pause
-     left is the tab being hidden, which the loop checks every frame. */
-  var heroVisible = true;
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function (entries) {
-      heroVisible = entries[0].isIntersecting;
-      var shouldRun = heroVisible || lensValue() > 0.02;
-      if (shouldRun && !running && !motionQuery.matches) { running = true; lastTs = 0; animate(0); }
-      else if (!shouldRun && running) { running = false; if (frameId) cancelAnimationFrame(frameId); }
-    }, { threshold: 0 }).observe(hero);
-  }
-  /* The observer only fires when the hero crosses the viewport edge, so the lens moving while
-     the reader is parked mid page has to be its own signal, in both directions: leaving the
-     person state has to start the loop, and coming back to it has to stop the loop again
-     rather than leave it rendering a field clipped to a hero nobody can see. */
-  addEventListener('lens:change', function () {
-    if (motionQuery.matches) return;
-    var shouldRun = heroVisible || lensValue() > 0.02;
-    if (shouldRun && !running) { running = true; lastTs = 0; animate(0); }
-    else if (!shouldRun && running) { running = false; if (frameId) cancelAnimationFrame(frameId); }
-  });
+  /* There is no hero pause any more, and there must not be one. From v1.21.0 an
+     IntersectionObserver stopped the loop once the hero left the viewport, and that was only
+     ever safe because the field was clipped to the hero: with the hero gone the clip closed
+     completely and the stopped field was invisible. v1.23.0 removed the clip, and the same
+     observer then stopped the loop while the field still covered the whole page. Measured at
+     390px in the person state, scrolled past the hero: zero pixels changed over 450ms with
+     20.3 per cent of the frame lit. A still photograph of a particle field, which reads as a
+     rendering fault rather than as a pause. The tab being hidden is the only pause left, and
+     the loop checks that every frame. */
 
   /* 6. Resize with the viewport. It used to be a ResizeObserver on the hero, because the
-     canvas was the hero's own size; the canvas is the viewport now and the clip is what
-     decides how much of it a reader sees. */
+     canvas was the hero's own size; the canvas is the viewport now, and since v1.23.0 so is
+     everything a reader sees of it. */
   function resize() {
     var s = hostSize();
     camera.aspect = s.w / s.h;
     camera.updateProjectionMatrix();
     renderer.setSize(s.w, s.h, false);
-    clipToHero();
+    syncVeil();
   }
   window.addEventListener('resize', resize);
 
@@ -644,11 +665,12 @@
     veil.remove();
     /* And stop listening. Both of these write to nodes that have just been detached, which is
        harmless but keeps a scroll handler alive for a field that no longer exists. */
-    removeEventListener('scroll', clipToHero);
-    removeEventListener('resize', clipToHero);
+    removeEventListener('scroll', syncVeil);
+    removeEventListener('resize', syncVeil);
     removeEventListener('resize', shapeSoon);
     removeEventListener('lens:change', shapeSoon);
     removeEventListener('scroll', shapeSoon);
+    main.removeEventListener('transitionend', onSettle);
     if (maskRO) maskRO.disconnect();
     if (maskRaf) cancelAnimationFrame(maskRaf);
     window.removeEventListener('resize', resize);
