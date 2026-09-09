@@ -269,10 +269,19 @@
   /* 2. Particle state
      A narrow hero only shows a slim vertical slice of the world, so on phones the field is
      scaled to the visible width and thinned. Otherwise most particles sit off-screen and are
-     computed for nothing. */
+     computed for nothing.
+
+     The count went up in v1.22.1, 200 to 280 below 700px and 380 to 500 above. Person is the
+     reason: it is the one state whose field is confined to the hero, and the hero is a wall of
+     text, so almost all of the light it makes lands under the veil and is spent. The count is
+     one buffer, so this lifts all three states. What is per state is the point size below,
+     which is where the person state gets the rest of its light without pushing the other two
+     any further. Measured at 390px in the hero band, that takes the share of it that is lit
+     from 1.2 to 13.9 per cent and the share that is genuinely bright from 0.00 to 0.85 per
+     cent, against Google's 1.05. */
   var narrow = size.w < 700;
   var spreadX = narrow ? 26 : 60;
-  var count = narrow ? 200 : 380;
+  var count = narrow ? 280 : 500;
   var geometry = new THREE.BufferGeometry();
   var renderPos = new Float32Array(count * 3);   // what is drawn: base + drift + repel
   var basePos = new Float32Array(count * 3);     // formation position, lerps toward target
@@ -308,15 +317,35 @@
   var currentDrift = modeConfigs.person.driftAmp;
 
   /* ---- the budget ----
-     No GPU was available where this was built, so these are workload numbers rather than
-     timings: particles are unchanged from the hero-only field, and the segment cap is what
-     bounds the page wide states. The existing sub-700px halving carries straight through.
-     Person draws no links at all, so its cost is unchanged from before this change. */
-  var SEGMENT_BUDGET = { person: 0, google: narrow ? 600 : 1200, ai: narrow ? 90 : 180 };
+     No GPU was available where this was built, so a whole frame time here is the software
+     rasteriser and says nothing useful. What is quotable is the JavaScript the field runs each
+     frame, timed from the top of the tick to the render call: 0.1 to 0.3ms at 390px and 0.3 to
+     0.5ms at 1280px, p95 0.8ms, and the same to the tenth of a millisecond at the v1.22.0
+     counts and budget as at these. So the counts below are a workload number rather than a
+     timing, and the link search is not what a phone would be waiting on. The segment cap is
+     what bounds the page wide states, and the sub-700px thinning carries straight through.
+
+     The budget rises with the count, 1200 to 1580 and 600 to 840, and has to. The buffer is
+     filled in index order and the outer guard stops the whole search once it is full, so with
+     the count raised and the budget held the mesh reached a smaller share of the grid than it
+     did before: the grid is laid out in fixed columns, so more particles make it taller rather
+     than denser, and the links ran out further from the top of it. Holding segments per
+     particle constant keeps the mesh covering what it covered. MAX_SEGMENTS still caps both.
+
+     Person draws no links at all, so its per frame cost is the particle loop and nothing
+     else, and that is now true through the first quarter of the drag as well rather than at
+     rest only. */
+  var SEGMENT_BUDGET = { person: 0, google: narrow ? 840 : 1580, ai: narrow ? 126 : 237 };
   /* AI is the quietest state, not the busiest. Its argument is that an assistant receives
      linear text and nothing else; a swarming field behind that contradicts the point. It is
      also the state with the most text on screen, so it is the worst place to put light. */
   var POINT_OPACITY = { person: 0.95, google: 0.75, ai: 0.28 };
+  /* Point size is per state for the same reason opacity is. The person state is the one whose
+     field is confined to the hero, and the hero is a wall of text, so the veil is over almost
+     all of it and most of the light it makes is spent. Google and AI are page wide and have
+     the document's own gaps to shine through, so they need less. One material, so this is
+     written per frame from the same mix as everything else rather than set once. */
+  var POINT_SIZE = { person: 3.4, google: 2.4, ai: 2.4 };
 
   function lensValue() {
     var v = parseFloat(getComputedStyle(document.body).getPropertyValue('--lens'));
@@ -335,6 +364,7 @@
       threshold: mix(A.threshold, B.threshold, t),
       driftAmp: mix(A.driftAmp, B.driftAmp, t),
       pointOpacity: mix(POINT_OPACITY[lo], POINT_OPACITY[hi], t),
+      pointSize: mix(POINT_SIZE[lo], POINT_SIZE[hi], t),
       budget: Math.round(mix(SEGMENT_BUDGET[lo], SEGMENT_BUDGET[hi], t)),
       colorFrom: A.color, colorTo: B.color, colorT: t,
       spread: v < 1 ? v : 1
@@ -342,7 +372,7 @@
   }
 
   var material = new THREE.PointsMaterial({
-    size: 1.9,
+    size: POINT_SIZE.person,
     map: sprite,
     color: currentColor,
     transparent: true,
@@ -481,6 +511,7 @@
     currentColor.copy(cfg.colorFrom).lerp(cfg.colorTo, cfg.colorT);
     lineMaterial.opacity = cfg.lineOpacity;
     material.opacity = cfg.pointOpacity;
+    material.size = cfg.pointSize;
     currentDrift = cfg.driftAmp;
     /* The spread is the cloud growing, not the camera retreating. Pulling the camera back was
        the first attempt and it did the opposite of what it says: the frustum widened faster
@@ -497,7 +528,13 @@
     var baseK = Math.min(1, 0.06 * dt);
     var repelK = Math.min(1, 0.18 * dt);
     var v = 0;
-    var linkable = cfg.threshold > 0;
+    /* Not threshold > 0. The threshold is mixed from 0, so a value a hundredth of the way out
+       of the person state gives 0.042, which no pair is ever inside, while the budget is
+       already large enough that the "buffer is full" guard below never trips. The whole pair
+       scan then ran every frame and drew nothing, through the first quarter of the drag. Mean
+       spacing in this field is about four world units, so a threshold under one cannot produce
+       a link and there is nothing to look for. */
+    var linkable = cfg.threshold > 1;
     var threshold = cfg.threshold;
     var maxFloats = Math.min(lineArray.length, cfg.budget * 6);
 
