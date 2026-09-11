@@ -207,3 +207,220 @@ document.documentElement.classList.add("js");
 })();
 
 (function(){if(location.protocol==='file:')return;var v=document.querySelector('.hero-media video');if(v&&window.matchMedia('(max-width:760px)').matches){var s=v.querySelector('source');if(s){s.src='/assets/img/gen-hero-loop-sm.mp4';v.load();}}})();
+
+/* ---------- v1.24: the mobile nav, collapsed into a burger below 700px ----------
+   Progressive enhancement, not a component. The markup ships the full visible nav, which is
+   what a reader with JavaScript off gets, wrapped onto two rows exactly as it has been since
+   v1.7. This builds the button and the panel, and only then adds the class that hides the nav,
+   so the nav can never be hidden without a button to replace it.
+
+   The panel is the site as one outline, which is the lens idea at site scale: the path a
+   machine reads, the title a person reads, and one true line about what is there. */
+(function () {
+  var top = document.querySelector("header.top");
+  var wrap = top && top.querySelector(".wrap");
+  var nav = top && top.querySelector('nav[aria-label="Primary"]');
+  var shell = document.querySelector(".shell");
+  var main = document.getElementById("main") || document.querySelector("main");
+  var foot = document.querySelector("footer.site");
+  if (!top || !wrap || !nav || !shell || !main) return;
+
+  var LINES = {
+    "/work/": "Eight decision stories, with the numbers behind them",
+    "/systems/": "Production AI, with the governance built in",
+    "/games/": "SnapHit Studios. Three arcade games, playable here",
+    "/book/": "Build, Stabilise, Leverage. Australian property, 441 pages",
+    "/super/": "SMSF Property Investing. The whole book, free",
+    "/about/": "Fifteen years across banking, government and defence",
+    "/are-you-ai/": "Written for the machines that read this site",
+    "/contact/": "LinkedIn. Serious messages get an answer"
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* ---- the button ---- */
+  var btn = el("button", "burger");
+  btn.type = "button";
+  btn.id = "nav-burger";
+  btn.setAttribute("aria-label", "Menu");
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", "nav-panel");
+  btn.appendChild(el("i", null, ""));
+  btn.querySelector("i").setAttribute("aria-hidden", "true");
+
+  /* ---- the panel ---- */
+  var panel = el("div", "navpanel");
+  panel.id = "nav-panel";
+  panel.hidden = true;
+  var dots = el("p", "navpanel-dots");
+  dots.setAttribute("aria-hidden", "true");
+  ["t1", "t2", "t3"].forEach(function (t) { dots.appendChild(el("span", "tdot " + t)); });
+  panel.appendChild(dots);
+
+  var list = el("nav", "navpanel-list");
+  list.setAttribute("aria-label", "Site outline");
+  /* Built from the header's own anchors, so the panel can never disagree with the nav it
+     replaces: one list in the markup, two presentations of it. aria-current comes along with
+     it, which is what marks the current page here as well. */
+  Array.prototype.forEach.call(nav.querySelectorAll("a[href]"), function (a, i) {
+    var href = a.getAttribute("href");
+    var row = el("a", "np-row");
+    row.href = href;
+    row.style.setProperty("--np-i", String(i));
+    if (a.hasAttribute("aria-current")) row.setAttribute("aria-current", "page");
+    row.appendChild(el("span", "np-path", href));
+    row.appendChild(el("span", "np-title", (a.textContent || "").trim()));
+    if (LINES[href]) row.appendChild(el("span", "np-desc", LINES[href]));
+    list.appendChild(row);
+  });
+  panel.appendChild(list);
+
+  wrap.appendChild(btn);
+  document.body.appendChild(panel);
+  document.documentElement.classList.add("nav-js");
+
+  /* ---- open and close ---- */
+  var root = document.documentElement;
+  var open = false;
+  var closeTimer = 0;
+
+  function focusables() {
+    return Array.prototype.filter.call(
+      panel.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'),
+      function (n) { return n.offsetWidth > 0 || n.offsetHeight > 0; });
+  }
+
+  /* The scale has to happen about the middle of the VIEWPORT, not the middle of the shell.
+     The shell is the whole document, nine thousand pixels tall on the homepage, and scaling
+     that about its own centre displaces everything near the top of the page downward by eight
+     per cent of its distance from that centre: measured 357px at a scroll position of 400,
+     which threw the sticky header and its own burger into the middle of the screen. Scroll is
+     locked while the panel is open, so one reading taken as it opens stays correct until it
+     closes; it is recomputed if the viewport itself changes. */
+  function setOrigin() {
+    shell.style.transformOrigin = "50% " + (window.pageYOffset + window.innerHeight / 2) + "px";
+  }
+
+  function setOpen(v) {
+    if (v === open) return;
+    /* Never over a full screen game. See the .sh-zoomed note in style.css: the game is
+       position:fixed inside the shell, so a transformed shell breaks it out of the viewport. */
+    if (v && document.body.classList.contains("sh-zoomed")) return;
+    open = v;
+    btn.setAttribute("aria-expanded", v ? "true" : "false");
+    if (v) {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+      setOrigin();
+      panel.hidden = false;
+      root.classList.add("nav-lift");
+      /* The page is set aside, so it is set aside for a screen reader too. Not inert and not
+         aria-hidden on the shell, because the burger lives in the header inside it and inert
+         has no exemption: hiding the shell would hide the only control that closes the panel.
+         main and the footer are the page; the header is the chrome that holds the button. */
+      main.setAttribute("aria-hidden", "true");
+      if (foot) foot.setAttribute("aria-hidden", "true");
+      /* One frame between unhiding and the class, or the rows have no state to transition
+         from and the outline arrives all at once. */
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          /* Still open by the time the frame arrives. Two taps inside one tick used to leave
+             the panel open: the close ran immediately and this pending frame then put the
+             class back on top of it. */
+          if (open) root.classList.add("nav-open");
+        });
+      });
+      var f = focusables();
+      if (f.length) f[0].focus();
+    } else {
+      root.classList.remove("nav-open");
+      main.removeAttribute("aria-hidden");
+      if (foot) foot.removeAttribute("aria-hidden");
+      /* Only if there is somewhere to put it. Crossing above the breakpoint closes the panel,
+         and by then the burger is display:none and cannot take focus. */
+      if (btn.offsetWidth || btn.offsetHeight) btn.focus();
+      else { var brand = top.querySelector(".brand"); if (brand) brand.focus(); }
+      /* The panel stays in the tree until the page has finished sliding back, or it would
+         vanish from behind a page that is still moving. */
+      closeTimer = setTimeout(function () {
+        panel.hidden = true;
+        root.classList.remove("nav-lift");
+        shell.style.transformOrigin = "";   /* only after the page has finished sliding back */
+        closeTimer = 0;
+      }, 380);
+    }
+  }
+
+  btn.addEventListener("click", function () { setOpen(!open); });
+
+  /* Tapping the visible strip of the page closes it. The strip is the only part of the shell
+     a pointer can reach while the panel is open, so this needs no overlay of its own. Capture
+     phase and stopPropagation, so a tap on the strip cannot also follow whatever link happens
+     to be under it.
+
+     The burger is exempt, and has to be. It lives in the header, which is inside the shell, so
+     without this a second tap on it ran both handlers in order: this one closed the panel, and
+     then the button's own toggle read the new state and opened it straight back up. Measured:
+     the panel stayed open, which is the one interaction the brief names twice. */
+  /* pointerdown, not click, and then the click is swallowed. The lens drives itself from
+     pointerdown and pointerup, which both fire before click, so a guard that waited for click
+     arrived after the scrub had already happened: one tap on the strip closed the nav AND ran
+     the homepage from the person state to the AI state. */
+  var swallow = false;
+  shell.addEventListener("pointerdown", function (e) {
+    if (!open || btn.contains(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    swallow = true;
+    setOpen(false);
+  }, true);
+  shell.addEventListener("click", function (e) {
+    if (btn.contains(e.target)) return;
+    if (!open && !swallow) return;
+    swallow = false;
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(false);
+  }, true);
+
+  /* Escape, and the focus trap. Capture phase and stopPropagation so Escape closes the topmost
+     thing only: arcade.js listens for Escape on window unconditionally, and on /games/ that
+     would otherwise also run its collapse every time a reader dismissed the nav. */
+  document.addEventListener("keydown", function (e) {
+    if (!open) return;
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      setOpen(false);
+      return;
+    }
+    if (e.key !== "Tab") return;
+    var f = focusables();
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (panel.contains(document.activeElement) === false) { e.preventDefault(); first.focus(); }
+  }, true);
+
+  /* The origin is a viewport reading, so it is retaken if the viewport itself changes under an
+     open panel: a rotation, or the address bar collapsing. */
+  addEventListener("resize", function () { if (open) setOrigin(); }, { passive: true });
+
+  /* Restored from the back forward cache with the panel open, which is what happens when a
+     reader follows a row and then presses back. The scroll lock and the slid page would come
+     back with it, and the reader asked for the page, not the menu. */
+  addEventListener("pageshow", function (e) { if (e.persisted && open) setOpen(false); });
+
+  /* Crossing back above the breakpoint with the panel open would leave the page translated and
+     the scroll locked with no button on screen to undo either. The query is the exact
+     complement of the stylesheet's own, so a fractional width between 700 and 701 cannot fall
+     through the gap between them. */
+  var wide = window.matchMedia("(max-width: 700px)");
+  function onWide(e) { if (!e.matches && open) setOpen(false); }
+  if (wide.addEventListener) wide.addEventListener("change", onWide);
+  else if (wide.addListener) wide.addListener(onWide);
+})();

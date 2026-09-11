@@ -513,8 +513,15 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 .quote.solo{max-width:46rem;margin:0 auto}
 @media (max-width:760px){.quotes{grid-template-columns:1fr}}
 
-/* ---------- v1.7: mobile header + book chapters ---------- */
-@media (max-width:720px){
+/* ---------- v1.7 mobile header, rebuilt in v1.24 as the burger fallback ---------- */
+/* This used to be the mobile header at 720px: the nav is allowed to wrap and the brand is
+   hidden to make room for it. It is now the NO JAVASCRIPT fallback, and it moved to 700px
+   because that is where the burger starts. The 700px to 720px band therefore changes, and
+   measured rather than assumed: with nine items the nav did not actually wrap up there, so what
+   that band had was a single 51px row with no wordmark. It gets the standard 65px header with
+   the brand now, which is what the header has been from 721px up since v1.7. That band is the
+   only place above 700px where anything moved. */
+@media (max-width:700px){
   .top .wrap{flex-wrap:wrap;height:auto;gap:.5rem 1rem;padding-top:.6rem;padding-bottom:.6rem;align-items:center}
   .top .brand{display:none}
   .top nav{flex-wrap:wrap;margin-left:0;overflow-x:visible;gap:.5rem 1.1rem;width:100%;row-gap:.55rem}
@@ -665,6 +672,13 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
 .hero-game{position:relative;width:100%;height:calc(100dvh - 56px);min-height:420px;
   background:#04070e;overflow:clip}
 @media (max-width:760px){.hero-game{height:calc(100dvh - 92px)}}
+/* 92px was the height of the wrapped mobile header this game used to sit under. From v1.24 the
+   header below 700px is the brand and a burger on one row, 65px like every other width, so the
+   old subtraction left a 27px band of ground under the game. The 721px to 760px band keeps 92px
+   because that is what it has had since v1.17 and this version is not the place to change the
+   game's size above the burger breakpoint; it is worth a look on its own, because the header
+   there has been one 65px row since v1.7 too. */
+@media (max-width:700px){.nav-js .hero-game{height:calc(100dvh - 65px)}}
 .hero-game-frame{display:block;width:100%;height:100%;border:0;background:#04070e}
 
 .hero-down{position:absolute;right:max(14px,env(safe-area-inset-right));
@@ -1715,3 +1729,159 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 @media (prefers-reduced-motion:reduce){
   body.home .lens-field{display:none}
 }
+
+/* ---------- v1.24: the mobile nav, as a reveal rather than a drawer ---------- */
+/* Nothing on this site covers the page. The lens peels the page into its machine readings, the
+   arcade cabinet becomes the game, and there are no modals. So the nav is not a panel that
+   slides over the page: the PAGE slides left and scales back, and the nav is revealed behind
+   it on the right, as a layer that was always there. A strip of the page stays on screen at
+   the left so the reader never loses their place.
+
+   WHY div.shell EXISTS, and why nothing position:fixed is inside it.
+   A transform makes the transformed element the containing block for every position:fixed
+   DESCENDANT, which turns them into absolutely positioned elements that scroll away. This repo
+   has shipped that bug twice with filter. So the sliding element wraps exactly header.top,
+   main and footer.site, and every fixed layer on this site is a direct child of body: the
+   particle field and its ground at z-index -4 and -2, the lens control at 80, the reader pill
+   at 70 and its overlay at 90, the arcade's two full screen controls at 201, and body's own
+   ::before and ::after rules at 100 and 101. Verified at runtime on thirteen pages: the only
+   element inside the shell that is fixed or sticky is header.top, and it is sticky. The two
+   arcade controls used to sit between main and the footer in the markup and were moved below
+   the footer in this version for exactly this reason.
+
+   What travels and what stays put, decided rather than discovered, and then measured:
+   . The particle field STAYS PUT and keeps running. It is the room, not the page, so it does
+     not travel with a page that is being set aside. While the panel is open it is not VISIBLE,
+     which is a separate thing and worth stating plainly rather than claiming otherwise: the
+     panel is opaque over most of the screen, and in the peek strip the hero band paints over
+     it, because a transformed element is a stacking context and everything inside the shell
+     therefore paints as one unit above the body level layers at -2 and -4. Measured on the
+     homepage at 390px: 20.8 per cent of pixels changing between two frames with the panel
+     closed, 0.4 per cent in the strip with it open, and 18.5 per cent again once it closes.
+     Nothing is torn down, and nothing needs putting back.
+   . The lens control STEPS OUT. It is a page affordance, and while the nav is open the page is
+     set aside, so the control goes with it conceptually. It cannot travel, being fixed and
+     outside the shell, so it is covered by the panel and made inert.
+   . The panel is opaque on purpose. Letting the field through it would put every row of text on
+     a background that peaks at white, and the brief for this version rules out particle effects
+     inside the panel anyway. */
+
+/* The burger is built by JavaScript, and so is .nav-js, in that order and in one statement, so
+   the nav can never be hidden without a button to replace it. With JavaScript off there is no
+   class, no button and no panel, and the header is exactly the wrapped nav above. */
+.burger{display:none}
+.navpanel[hidden]{display:none}
+
+@media (max-width:700px){
+  .nav-js .top .wrap{flex-wrap:nowrap;height:64px;gap:1rem;padding-top:0;padding-bottom:0}
+  .nav-js .top .brand{display:block}          /* his name is back: the burger frees the room */
+  .nav-js .top nav{display:none}
+  .nav-js .burger{
+    display:inline-flex;align-items:center;justify-content:center;margin-left:auto;
+    width:44px;height:44px;flex:none;                    /* a real 44px target, not a 24px icon */
+    appearance:none;background:none;border:0;padding:0;cursor:pointer;color:var(--ink-2);
+    border-radius:10px;transition:color .15s;
+  }
+  /* Only the homepage has a dark header. body.arcade darkens main and keeps the sitewide light
+     header, so the dark ground colour on it put a --panel-dim burger on near white paper. */
+  .nav-js body.home .burger{color:var(--panel-dim)}
+  .nav-js .burger:hover,.nav-js .burger[aria-expanded="true"]{color:var(--ink)}
+  .nav-js body.home .burger:hover,.nav-js body.home .burger[aria-expanded="true"]{color:var(--panel-ink)}
+  .burger i{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;
+    transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .18s}
+  .burger i::before,.burger i::after{content:"";position:absolute;left:0;width:20px;height:2px;
+    background:currentColor;border-radius:2px;transition:transform .28s cubic-bezier(.4,0,.2,1)}
+  .burger i::before{top:-6px} .burger i::after{top:6px}
+  .burger[aria-expanded="true"] i{transform:rotate(45deg)}
+  .burger[aria-expanded="true"] i::before{transform:translateY(6px) rotate(-90deg)}
+  .burger[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg);opacity:0}
+
+  /* The slide. --nav-peek is how much of the page stays on screen; the translate is derived
+     from it rather than guessed, so the page's right edge lands exactly there at any width:
+     with transform-origin at the centre, the scaled right edge sits at 50% + 50% * scale, so
+     the translate is that minus the peek. */
+  :root{--nav-peek:56px;--nav-scale:.92}
+  .nav-js .shell{transition:transform .34s cubic-bezier(.4,0,.2,1)}
+  /* Two classes, not one, and the close is why. .nav-open comes off the instant the panel is
+     dismissed so the transform can transition back; if the stacking position went with it the
+     shell would drop below the panel for the whole 340ms and the slide back would happen behind
+     an opaque panel. Measured: the panel was still the top element at 200,400 for 275ms of a
+     280ms close. .nav-lift is added before .nav-open and removed after the slide has finished.
+     It is not on the shell permanently because a z-index on this element is a stacking context,
+     and on the homepage that would trap .hero-media at -3 above the particle field at -2. */
+  .nav-lift .shell{position:relative;z-index:86}
+  .nav-open .shell{
+    transform:translateX(calc(var(--nav-peek) - 50% - 50% * var(--nav-scale))) scale(var(--nav-scale));
+    box-shadow:-22px 0 44px -14px rgba(0,0,0,.6);
+  }
+  /* Covered by the panel and made inert. Not display:none, which would cost the lens its
+     measured control geometry, and not a transition, which would only draw the eye to it.
+
+     .frame is in that list and has to be. On /book/ the lens control is .lens-ctl, a fixed
+     element outside the shell, and that rule covers it. On the HOMEPAGE there is no .lens-ctl
+     at all: lens.js adopts the reader frame as the control, so it is markup inside main inside
+     the shell, and the bottom of its track lands inside the 56px peek. Measured at 390px with
+     the panel open, one tap at x20 y812 took --lens from 0 to 2 and the page from the person
+     state to the AI state on the way out. The tap closed the nav and destroyed the page behind
+     it. */
+  .nav-open .reader-pill,.nav-open .lens-ctl,.nav-open .frame{pointer-events:none}
+  /* And the burger leaves the tab order while a game is full screen. The two states cannot be
+     allowed to coexist: .sh-phone.sh-big is position:fixed inside the shell, so a shell that is
+     transformed becomes its containing block and inset:0 resolves against the whole document.
+     Measured, reached by tabbing backwards out of the game frame: 359 by 5107px at left -303
+     instead of 390 by 844 at 0,0. Covering the button with the z-index 200 overlay stops a
+     pointer, which is not the same as stopping a keyboard. */
+  .nav-js body.sh-zoomed .burger{display:none}
+
+  /* Dark on every page, including the light ones. The nav is behind the page, and the site
+     already reads dark as the substrate: the footer is --panel on all 32 pages, so is the hero
+     band, so is the arcade. One treatment sitewide rather than three that track the palette. */
+  .navpanel{
+    position:fixed;top:0;right:0;bottom:0;width:calc(100% - var(--nav-peek));z-index:85;
+    background:var(--panel);color:var(--panel-ink);
+    overflow-y:auto;overscroll-behavior:contain;
+    padding:calc(env(safe-area-inset-top) + 1.5rem) 1.25rem calc(env(safe-area-inset-bottom) + 2rem) 1.4rem;
+    border-left:1px solid var(--panel-2);
+  }
+  /* The three readers, in the site's own dot colours, at the top of the outline. */
+  .navpanel-dots{display:flex;gap:.5em;margin:0 0 1.6rem}
+  .navpanel-dots .tdot{width:.5rem;height:.5rem}
+
+  .np-row{
+    display:grid;grid-template-columns:1fr;gap:.12rem;
+    padding:.72rem .7rem .78rem;margin:0 -.7rem;border-radius:10px;
+    text-decoration:none;color:inherit;position:relative;
+  }
+  .np-path{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;color:#F2A879}
+  .np-title{font-family:var(--serif);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;color:var(--panel-ink)}
+  .np-desc{font-size:.82rem;line-height:1.5;color:var(--panel-dim);text-wrap:pretty}
+  .np-row:hover{background:#1b1811}
+  .np-row[aria-current="page"]{background:#1b1811}
+  /* The current page carries the three readers down its edge. Not var(--spectrum), which is a
+     90deg gradient and shows exactly one of its three colours through a rule two pixels wide. */
+  .np-row[aria-current="page"]::before{
+    content:"";position:absolute;left:-.7rem;top:.7rem;bottom:.7rem;width:2px;border-radius:2px;
+    background:linear-gradient(180deg,var(--signal-b),var(--index-b),var(--ok-b));
+  }
+  .np-row:focus-visible{outline:2px solid var(--index-c);outline-offset:2px}
+
+  /* The outline unfolds down the list rather than the panel appearing. The rows carry their own
+     index, so the stagger is a property of position in the list and not of a script ticking. */
+  .np-row{opacity:0;transform:translateX(14px);
+    transition:opacity .3s ease,transform .34s cubic-bezier(.4,0,.2,1);
+    transition-delay:calc(var(--np-i,0) * 38ms)}
+  .nav-open .np-row{opacity:1;transform:none}
+}
+
+/* Reduced motion: the finished state, arrived at without moving. The page is still set aside,
+   because that is what makes the reveal legible rather than a panel on top of the page, but it
+   gets there with no transition, no depth and no stagger. */
+@media (max-width:700px) and (prefers-reduced-motion:reduce){
+  .nav-js .shell,.burger i,.burger i::before,.burger i::after,.np-row{transition:none}
+  .nav-open .shell{transform:translateX(calc(var(--nav-peek) - 100%));box-shadow:none}
+  .np-row{opacity:1;transform:none;transition-delay:0s}
+}
+
+/* The scroll lock. On the root element, so it is restored by removing one class and the scroll
+   position is never written down and read back. */
+html.nav-open{overflow:hidden}
