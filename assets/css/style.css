@@ -32,7 +32,33 @@
    painted UNDER an opaque body background and is completely invisible: that is the bug that
    cost the v1.10.0 particle field, proven then with full opacity red nobody could see. Every
    page renders identically, because html now paints exactly what body used to. */
-html{scroll-behavior:smooth;background:var(--paper)}
+/* v1.27: color-scheme on the root, alongside the meta in every head. It computed to normal on
+   all thirty three documents, which left the browser to paint its own defaults for everything
+   this site does not style, and to guess before the stylesheet arrives.
+
+   What that is measurably worth, and it is the one visible change in this version: the scrollbar.
+   With color-scheme normal Chrome paints a LIGHT scrollbar whatever the reader's operating system
+   is set to, so the two dark pages had a white bar down the side of a near black page. Measured at
+   390px, the track on the homepage and on /games/ reads rgb(252,252,252) on the shipped build in
+   both an operating system set to light and one set to dark, and rgb(44,44,44) on this one in
+   both. The light pages measure rgb(252,252,252) before and after, unchanged.
+
+   What the head tag is worth, and it turns out to be measurable after all, just not where it was
+   first looked for. No white frame could be produced DURING a navigation on either build, and the
+   reason is structural rather than lucky: this stylesheet is render blocking in the head, so the
+   browser paints no frame of the new document until it has arrived. Held back 400ms, held back
+   3000ms, with a known magenta document in front of it, the previous page's pixels simply stay.
+   But block the stylesheet outright, which is a 404, a timeout or an extension rather than a
+   hypothetical, and the difference is plain: measured at 390px, the shipped build paints pure
+   white on the homepage and on /games/, and this one paints Chrome's own dark canvas, rgb(18,18,18),
+   with its default text legible on it. /work/ and every other light page paints white on both,
+   which is correct.
+
+   Declared here as well as in the head because the head tag is what the browser can act on
+   before the CSS arrives and this is what holds afterwards. The head carries the two tags and
+   no comment: /colophon/ prints the first 26 lines of its own source as a live proof, and two
+   standard meta tags need no explaining in thirty three files when the reasoning is here. */
+html{scroll-behavior:smooth;background:var(--paper);color-scheme:light}
 /* v1.23: the homepage's ground, and the only place it can live.
    It cannot be body's, which is the v1.10.0 bug written out a third time: body does not create
    a stacking context, so its background paints with the in-flow block backgrounds, ABOVE the
@@ -45,7 +71,24 @@ html{scroll-behavior:smooth;background:var(--paper)}
 
    Warm, not neutral. This is the person state's ground and the machine states cross to the
    cold one on .lens-ground. */
-html.home{background:var(--panel)}
+html.home{background:var(--panel);color-scheme:dark}
+/* /games/ is the site's other dark page and its ground was on BODY, so the canvas underneath it
+   stayed paper: everything the browser paints from the canvas rather than from the body box was
+   the wrong colour on a near black page, which is the overscroll at both ends of a phone scroll
+   and anything beyond the document. body.arcade keeps its own identical background, so nothing
+   inside the viewport changes by a pixel; what changes is what is behind it. */
+html.arcade{background:#04070e;color-scheme:dark}
+/* And the framed games are pinned back to light, which is not a contradiction. color-scheme is
+   inherited by a child document that does not declare one of its own, and when a child declares
+   NOTHING and the embedder is dark, Chrome stops treating that child's canvas as transparent and
+   paints it opaque. A child that declares a scheme of its own, even light dark with a
+   prefers-color-scheme rule behind it, is unaffected either way: measured. Measured on this page with a stub child that declares nothing: the cabinet
+   went from #04070e to pure white, because .hero-game-frame's own near black background stopped
+   showing through. These documents are snap-hit.online's, not this site's, so what they declare
+   is not ours to rely on, and a white rectangle in a cabinet is the exact defect this version
+   exists to remove. A child that does set its own ground renders identically either way, which
+   was measured too. */
+body.arcade iframe{color-scheme:light}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:transparent;color:var(--ink);
