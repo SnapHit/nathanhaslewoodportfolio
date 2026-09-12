@@ -63,15 +63,18 @@
       <p class="meta role">Fifteen years owning digital experiences end to end · banking, government and defence · PMP certified</p>
 
       <div class="frame" id="reader-frame">
-        <div class="frame-chrome">
-          <span class="req">GET <b>nathanhaslewood.com.au/</b> · <span class="status">200 OK</span> · text/html · rendered server-side</span>
-        </div>
-        <p class="frame-invite"><b>Move this.</b> The whole page becomes what each reader receives.</p>
+        <!-- The control is first inside the frame, the way a browser puts its tabs above its
+             address bar. It was below both, which put the whole feature under the fold on a
+             phone and explained the control before showing it. -->
         <div class="frame-tabs">
           <span class="frame-tab" data-reader="person" data-current><span class="dot" aria-hidden="true"></span>A person</span>
           <span class="frame-tab" data-reader="google"><span class="dot" aria-hidden="true"></span>Google</span>
           <span class="frame-tab" data-reader="ai"><span class="dot" aria-hidden="true"></span>An AI assistant</span>
         </div>
+        <div class="frame-chrome">
+          <span class="req">GET <b>nathanhaslewood.com.au/</b> · <span class="status">200 OK</span> · text/html · rendered server-side</span>
+        </div>
+        <p class="frame-invite"><b>Move this.</b> The whole page becomes what each reader receives.</p>
         <div class="frame-body">
           <div class="frame-panel panel-person active" id="panel-person">
             <h2>Reader one: a person. That's you.</h2>

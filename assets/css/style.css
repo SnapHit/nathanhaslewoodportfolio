@@ -1668,13 +1668,60 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 .frame-tabs{position:relative;touch-action:pan-y}
 /* The thumb, brought over from the /book/ control so the active state is a filled shape rather
    than a weight change, and so the same object moves under a drag. */
+/* v1.25: the FILL doubles, 16 per cent of the reader's hue to 32. At 16 over a near black
+   ground this read as an outline rather than as a chosen position, which on a phone made the
+   one thing a visitor had to notice about the control the thing they did not. The ring is
+   deliberately NOT taken up with it, and the note on --thumb-ring below says why, with the
+   numbers. The fill is what turns an outline into a block; the ring is the surface a label can
+   end up sitting on.
+
+   The glow points DOWN now. It pointed up, which was fine while the control sat in the middle
+   of the frame; the control is the frame's first child from this version, so an upward glow is
+   drawn straight into .frame's overflow:hidden and thrown away.
+
+   What says it moves is that it is a raised cap sitting in a recessed channel, which is what
+   the row of stops becomes below. Two grip marks down the thumb's edges were tried first and
+   thrown out: at 360px the left one lands under the reader dot and the right one reads as a
+   text caret. The pill on /book/ has no grips either, so this keeps the language rather than
+   inventing marks for it, and the attract below demonstrates the movement instead of
+   captioning it. */
 .frame-thumb{
   position:absolute;top:0;bottom:0;left:calc(var(--lens) * 100% / 3);width:calc(100% / 3);
   pointer-events:none;z-index:0;border-radius:10px 10px 0 0;
-  background:color-mix(in srgb,var(--lens-hue) 16%,transparent);
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lens-hue) 55%,transparent),
-             0 -2px 14px -6px var(--lens-hue);
+  /* 45 per cent, measured rather than chosen, and the ring is 1.5px rather than the 1px it was.
+     The ring is the one surface on this control that a label can end up sitting on: mid drag the
+     thumb straddles two stops and its vertical edge runs straight through the middle of a
+     centred label. At full hue that is 2.93:1 under the glyphs of "A person", which is a fail,
+     and it was a fail I introduced. Swept in thirty seconds of a lens value, both widths, worst
+     pixel under the glyphs: the shipped 55 per cent at 1px measures 5.36:1, the same 55 per cent
+     at 1.5px measures 4.63:1, and 45 per cent at 1.5px measures 5.29:1, all three worst at lens
+     1.90625 under "An AI assistant". A coarser sweep misses that value entirely, which is how an
+     earlier pass here read 5.31:1 and was wrong. So the ring grows and pales by the same amount
+     and the margin is the one this control shipped with. What makes it read as chosen is the
+     fill, the channel and the attract. */
+  --thumb-ring:color-mix(in srgb,var(--lens-hue) 45%,transparent);
+  background:color-mix(in srgb,var(--lens-hue) 32%,transparent);
+  box-shadow:inset 0 0 0 1.5px var(--thumb-ring),0 3px 14px -5px var(--lens-hue);
 }
+/* The channel the thumb rides in. An inset top shadow only, because the row's ground is a token
+   that crosses warm to cold with the rest of the page and must not be pinned to a colour here.
+   Only once the row is a track: with JavaScript off it is three tabs, and a channel behind tabs
+   is a groove around nothing. */
+.frame-live .frame-tabs{box-shadow:inset 0 2px 5px -4px rgba(0,0,0,.85)}
+/* The two dividers move off the stops and under the thumb. As a border on the stop itself the
+   left divider is drawn by the stop, which sits ABOVE the thumb so its labels stay readable,
+   and it therefore ran a dark line straight down the selected thumb's own ring. Painted on the
+   row instead, at the thirds the stops actually occupy, they pass beneath the cap as a channel
+   should. Only once lens.js has taken the row over: with JavaScript off the stops are content
+   sized rather than thirds, and they keep their own borders. */
+.frame-live .frame-tabs::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(var(--line),var(--line)),linear-gradient(var(--line),var(--line));
+  background-size:1px 100%;
+  background-position:calc(100% / 3) 0,calc(200% / 3) 0;
+  background-repeat:no-repeat;
+}
+.frame-live .frame-stop{border-right:0}
 /* The three stops. They were <button> inside a tablist; they are spans inside a slider now,
    because a slider with focusable children is two keyboard models fighting over one object. */
 .frame-stop{
@@ -1885,3 +1932,72 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 /* The scroll lock. On the root element, so it is restored by removing one class and the scroll
    position is never written down and read back. */
 html.nav-open{overflow:hidden}
+
+/* ---------- v1.25: the lens control, above the fold and hard to miss ---------- */
+/* The control that drives this whole page began 3px below the visible fold of a 390px phone,
+   measured against the roughly 750px Chrome leaves above its bottom bar. A page whose one job
+   is to get the lens used was hiding the lens.
+
+   Most of the fix is in the markup: the control is now the frame's first child, the way a
+   browser puts its tabs above its address bar rather than below it. That is worth 150px here
+   and it is the right order at every width, so it is not a mobile only reorder. The rest is
+   rhythm, on the homepage and below 700px only, and one thing hidden, below. The h1 and the
+   lede are untouched at every width: they are the argument. So is the credential line, which
+   was the other 63px on offer and needed the hero's wrap turned into a flex column to reorder
+   without touching the markup, which stops every margin in that wrap from collapsing and so
+   changes spacing nobody asked about. */
+@media (max-width:700px){
+  body.home .hero{padding-top:2.4rem}
+  body.home .hero h1{margin-bottom:1rem}
+  body.home .hero .lede{margin-bottom:.85rem}
+  body.home .hero .frame{margin-top:1.6rem}
+  /* The homepage's eyebrow only. At 360px it wraps to two lines and costs 57px, and rhythm
+     alone could not buy that back: measured, every margin above the frame tightened as far as
+     it can go without the page reading cramped still left the control below the target. What
+     it says is the host you are already on and the city, and the city is also in this page's
+     structured data, its title, and both /about/ and /contact/. Not in its meta description,
+     which names the industries and not the place. Every other page keeps its eyebrow at every
+     width, which is why this is scoped to body.home. */
+  body.home .hero .eyebrow{display:none}
+}
+
+/* ---------- the attract ---------- */
+/* Modelled on the arcade cabinets' press to play card, which is already this site's way of
+   saying touch this. The thumb leans toward the next reader and settles back, twice, and then
+   it is done for this page load. It is done for good once the reader has used the control,
+   which lens.js stores; somebody who watched it and did nothing gets asked once more next
+   visit rather than never again. Nothing here writes --lens: the value that drives the page is untouched, so the
+   attract cannot flash the document or fight the scrub. It is a transform on one absolutely
+   positioned element and an opacity on its own pseudo-element, so it costs no layout.
+
+   It is cancelled, not allowed to finish, the moment a finger or a key arrives. Removing the
+   class drops the transform in the same frame, which puts the thumb back on the position --lens
+   says it holds before the drag reads a single coordinate. The value maths measures the TRACK,
+   never the thumb, so a gesture that lands mid nudge is arithmetically unaffected either way;
+   this is so that what the reader sees under their finger is where the thumb actually is. */
+.frame-thumb::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 0 2px var(--thumb-ring),inset 0 0 20px -6px var(--lens-hue),
+             0 4px 18px -4px var(--lens-hue);
+}
+@keyframes lens-nudge{
+  0%,8%{transform:translateX(0)}
+  32%{transform:translateX(26%)}
+  62%,100%{transform:translateX(0)}
+}
+@keyframes lens-nudge-glow{
+  0%,4%{opacity:0}
+  28%{opacity:1}
+  62%{opacity:.28}
+  100%{opacity:0}
+}
+.lens-attract .frame-thumb{animation:lens-nudge 1600ms cubic-bezier(.34,1.06,.64,1) 2 both}
+.lens-attract .frame-thumb::before{animation:lens-nudge-glow 1600ms ease-out 2 both}
+
+/* Reduced motion gets the signal without the movement: no nudge, no pulse, and the ring simply
+   on. It stays on until the control is used, rather than timing out, because there is no
+   animation here whose end could take it away. */
+@media (prefers-reduced-motion:reduce){
+  .lens-attract .frame-thumb,.lens-attract .frame-thumb::before{animation:none}
+  .lens-attract .frame-thumb::before{opacity:1}
+}

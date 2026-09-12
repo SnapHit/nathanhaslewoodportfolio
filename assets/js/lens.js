@@ -489,6 +489,13 @@
 
   function apply(v) {
     value = v;
+    /* The page has actually left the person state, which is one of the three things this file
+       counts as having used the lens. The other two are a key press the slider acts on and a
+       drag that actually moved. What is NOT counted is a finger merely landing on the control:
+       it is a full width bar in the middle of the hero and most of what lands on it is a scroll
+       going past, and recording those would mean a visitor who has never used the lens never
+       sees the attract again. */
+    if (v > 0.02) { markUsed(); stopAttract(); }
     body.style.setProperty("--lens", v.toFixed(4));
     var wasAi = body.classList.contains("lens-ai");
     var isGoog = v >= 0.5, isAi = v >= 1.5;
@@ -613,6 +620,13 @@
   }
 
   track.addEventListener("pointerdown", function (e) {
+    /* First, before anything reads geometry. The attract is a transform on the thumb, and a
+       reader who has taken hold of it must see it where --lens says it is, not 30px along.
+       This ends the attract for this page load and does not record anything, which is the right
+       pair: a gesture that turns out to be a scroll still had a finger on the control, so
+       nudging at it again would be rude, and it still was not a use, so the next visit starts
+       clean. markUsed is left to pointermove, the keyboard and the value itself. */
+    stopAttract();
     dragging = true; moved = false; downX = e.clientX; downY = e.clientY;
     locked = e.pointerType !== "touch";
     dragRect = track.getBoundingClientRect();
@@ -637,7 +651,7 @@
       if (Math.abs(dx) > 8) locked = true;
       else return;
     }
-    if (Math.abs(dx) > 3) moved = true;
+    if (Math.abs(dx) > 3) { moved = true; markUsed(); }
     if (!moved) return;
     if (reduced) { target = Math.round(valueAt(e.clientX)); apply(target); return; }
     target = valueAt(e.clientX);
@@ -677,14 +691,99 @@
     else if (k === " " || k === "Enter") next = (near + 1) % 3;
     if (next === null) return;
     e.preventDefault();
+    /* Recorded even when next is where we already are, an arrow left at the first stop for
+       instance. A keyboard has no gesture that could be mistaken for a scroll, so a key the
+       slider acts on is unambiguously somebody working the control. */
+    stopAttract();
+    markUsed();
     tweenTo(next);
   });
+
+  /* ---------------- the attract ----------------
+     The control is the whole point of this page, so once it is on screen it says so, once,
+     the way the arcade cabinets' press to play card does on /games/. The thumb leans toward
+     the next reader and settles back, twice, and then it is finished for this page load. It
+     is finished for good only once the reader has actually used the control, which is what
+     the stored flag is for: somebody who watched it and did nothing has not been answered,
+     so they are asked once more next time rather than never again.
+
+     Nothing here touches --lens. The value that drives the document is untouched, so the
+     attract cannot flash the page, cannot move the reader, and cannot disagree with the
+     scrub: the nudge is a transform on the thumb alone, and the drag maths measures the
+     track, never the thumb.
+
+     It only runs on the homepage, where the frame is the control. The pill on /book/ is a
+     fixed object at the bottom of the viewport that is already impossible to miss, and it
+     appears on a page somebody is reading rather than one they are deciding to read. */
+  var USED_KEY = "nh_lens_used";
+  var used = false;
+  try { used = !!localStorage.getItem(USED_KEY); } catch (e) {}
+
+  function markUsed() {
+    if (used) return;
+    used = true;
+    /* Remembered the same way the ducks gate on /games/ remembers a cleared run, so somebody
+       who has already worked out what this does is never asked again. */
+    try { localStorage.setItem(USED_KEY, "1"); } catch (e) {}
+  }
+
+  var attractIo = null, attractTimer = 0, attractDone = false;
+
+  function stopAttract() {
+    if (attractDone) return;
+    attractDone = true;
+    if (attractTimer) { clearTimeout(attractTimer); attractTimer = 0; }
+    if (attractIo) { attractIo.disconnect(); attractIo = null; }
+    /* Dropping the class drops the animation, and with it the transform, in the same frame.
+       This repo has already shipped a stale animation frame that moved the reader 216px mid
+       transition, so the attract is cancelled rather than left to play itself out. */
+    ctl.classList.remove("lens-attract");
+  }
+
+  function startAttract() {
+    if (frameTabs && !used && "IntersectionObserver" in window) {
+      attractIo = new IntersectionObserver(function (entries) {
+        if (attractDone) return;
+        /* Gone again before it fired. The observer stays connected, so a reader who scrolls
+           back gets the attract then rather than having spent it off screen. */
+        if (!entries[entries.length - 1].isIntersecting) {
+          if (attractTimer) { clearTimeout(attractTimer); attractTimer = 0; }
+          return;
+        }
+        if (attractTimer) return;
+        /* A moment after it arrives, not the instant it crosses the edge: firing during the
+           scroll that brought it here is movement nobody attributes to the control. */
+        attractTimer = setTimeout(function fire() {
+          attractTimer = 0;
+          if (attractDone) return;
+          /* Not while the mobile nav is open. The page is translated 283px to the left behind
+             the panel, so the whole control including the thumb is off screen and the frame is
+             pointer-events:none, which means the attract would play out unseen and uncancellable
+             and then be finished for good. The observer cannot catch this: instrumented, it
+             reported the control still 86 per cent intersecting while its own rectangle read
+             x -283, because the transform is composited and the intersection is not. So this is
+             asked directly, and asked again rather than given up on. */
+          if (root.classList.contains("nav-open")) { attractTimer = setTimeout(fire, 700); return; }
+          attractIo.disconnect(); attractIo = null;
+          ctl.classList.add("lens-attract");
+        }, 1100);
+      }, { threshold: 0.9 });     /* the whole control on screen, not an edge of it */
+      attractIo.observe(track);
+      /* Finished of its own accord: take the class off so nothing is left behind. Under
+         reduced motion there is no animation and therefore no animationend, and that is
+         exactly what leaves the static ring on until the control is used. */
+      thumb.addEventListener("animationend", function (e) {
+        if (e.animationName === "lens-nudge") stopAttract();
+      });
+    }
+  }
 
   /* ---------------- go ---------------- */
 
   body.classList.add("lens-host");
   measure();
   apply(0);                              /* every visitor arrives in the person state */
+  startAttract();
   addEventListener("resize", measure, { passive: true });
   /* Measured again once the webfonts are in. measure() first runs at DOMContentLoaded, when
      the page is still laid out in fallback metrics, and every height taken then is wrong by
