@@ -2001,3 +2001,99 @@ html.nav-open{overflow:hidden}
   .lens-attract .frame-thumb,.lens-attract .frame-thumb::before{animation:none}
   .lens-attract .frame-thumb::before{opacity:1}
 }
+
+/* ---------- v1.26: the certification marks on the homepage ---------- */
+/* Every one of these is third party artwork printed on white, and since the page went dark in
+   v1.23 each has sat as a hard white rectangle inside a soft dark card. None of the files may be
+   touched: they are other organisations' certification marks and recropping them is not ours to
+   do. So the white becomes a deliberate surface instead of an accident, in CSS: a disc for the
+   three circular badges, a chip for the strip, and the same white on both so the row reads as
+   one treatment rather than two. */
+
+/* FIRST, A GEOMETRY BUG THAT WAS ALREADY LIVE. .tile img is width:100%;height:100%, written when
+   the img was a direct child of .tile, which is a flex item with the grid row's definite height.
+   lens.js wraps every img in main in span.lens-fig, whose height is auto, so the percentage no
+   longer resolves and img,svg{height:auto} takes over: the image is sized by width alone and
+   grows past the fixed height of its tile, where overflow:hidden cuts it. Measured with
+   JavaScript on: badge-agile renders 133x133 in a 133x106 tile at 390px, and 280x280 in a
+   280x106 tile at 700px, which is most of a certification mark sliced off. With JavaScript off
+   the same page is correct, which is why it was never obvious. Giving the wrapper the height its
+   child was written against restores it. */
+/* Centred as well, because the wrapper is now the full height of the tile while the ANZ strip
+   keeps its own shallow aspect, roughly one to six. Left at the top of the wrapper it sat with
+   45.6px of dark under it at 390px and 59.6px at 1280px. */
+/* BOTH dimensions, and the width is not optional. .lens-fig is a flex item with width:auto, so
+   pinning only its height made the img's width:100% cyclic: the image resolved from its own
+   aspect ratio at that height and the wrapper shrink wrapped to it. Anything narrower in aspect
+   than its tile then stopped filling the tile's width, which is exactly the fault this rule
+   exists to fix. nathan.jpg is square, so at 860px it left 45.8px of dark card down each side of
+   a 386px tile while the caption gradient still ran the full width. */
+body.home .bento .tile .lens-fig{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+/* Except in the AI state, where the picture is gone and the alt text is simply a line of the
+   document. Pinning the wrapper there would hold those words to the height of an image that no
+   longer exists and .tile's overflow:hidden would cut them. */
+body.home.lens-ai .bento .tile .lens-fig{height:auto;display:block}
+
+/* The three circular badges, named by file rather than by position. Each of these three is
+   circular artwork on a white ground with margin to spare, verified against the source: the ink
+   box is 373x374 in a 449x405 frame, 311x312 in 342x329, and 385x384 in 408x408. A rule that
+   matched every plain tile instead would silently crop the next badge somebody adds, and
+   clipping another organisation's mark is worse than leaving one square. The trade is that the
+   match is on the end of the src, so a cache busting query string appended to one of these URLs
+   would quietly stop it matching. There is no build step here to append one. */
+/* circle(closest-side), not border-radius:50%. The tile is not square at any width, and a 50 per
+   cent radius on a 121x116 box is an ellipse. closest-side takes the shorter side, so this is a
+   true circle at every width, and it clips the background as well as the image. Where clip-path
+   is unsupported the badge renders exactly as it does today, which is the state this replaces
+   rather than a broken one. */
+body.home .bento .tile img[src$="badge-pmp.png"],
+body.home .bento .tile img[src$="badge-ai-pm.png"],
+body.home .bento .tile img[src$="badge-agile.png"]{
+  background:#fff;
+  padding:6px;                       /* the artwork sits inside the disc rather than on its edge */
+  clip-path:circle(closest-side at 50% 50%);
+}
+
+/* The book cover is landscape and its tile is portrait at phone widths, so object-fit:cover has
+   to crop it hard: centred, the crop cut the title off mid word. The book sits between 50 and 92
+   per cent across the photograph and the window at 390px is 40 per cent of it, so the window is
+   centred on the book rather than on the frame. Note that object-position is a proportional
+   alignment and not a window centre: 85 per cent puts the window at 51 to 91 per cent, which is
+   the book with a per cent to spare on each side. */
+body.home .bento .tile.cover img{object-position:85% 50%}
+
+/* The strip is six circular badges in a row on white, 1600x273, so it cannot be a disc. It gets
+   the same white surface shaped to its own artwork: height:auto keeps the box on the file's own
+   ratio, so the chip hugs the strip instead of filling a tile three times its height. */
+/* A pill rather than a rounded card, which is the judgement call in this version. Six circular
+   badges in a row on a white pill are the same object as the three on white discs: one round
+   white surface stretched. A 14px card reads as a different thing sitting next to them, and
+   consistency across the row matters more here than any one treatment being optimal.
+
+   The width is capped, and that is not cosmetic. The strip's height follows its tile's WIDTH
+   while the row height is fixed, so in the two column band the tile is up to 757px wide and the
+   pill grew to 136px inside a 106px content box: it ate the card's padding entirely and left
+   about 2px of dark between itself and the border, which is the soft dark card this version is
+   built around, gone. And because border-radius:999px resolves to half the height, the end caps
+   grew with it, to 68px against a fixed 22px of padding, and began taking the outermost
+   antialias off the end badges from about 820px. Capped at 400px the pill is 75px tall at its
+   largest, it sits centred in its card the way the discs sit centred in theirs, and the caps
+   stay small enough for the padding. */
+body.home .bento .tile.wide img{
+  height:auto;
+  max-width:400px;
+  background:#fff;
+  padding:7px 22px;
+  border-radius:999px;
+}
+
+/* In the AI state the picture is gone entirely: lens.js collapses .lens-fig > img to height 0
+   and the alt text becomes a line of the document. Padding on a border-box element has a floor,
+   so the disc's 6px would have held a 12px box open, the same at every width, and the strip's
+   height:auto above would have kept its whole rendered height, which follows the viewport: 60.4px
+   at 390px, 74.7px at 700px, 35.9px at 1280px. Both are at opacity 0 by then, so nothing shows either way, but the tiles
+   are a fixed height and every pixel held here is a pixel of alt text that .tile's overflow
+   cuts. Known and not this version's to fix: that text is already clipped in the AI state on the
+   shipped build, by the same fixed row height, and unclipping it is a layout change to the
+   evidence wall rather than an image treatment. */
+body.home.lens-ai .bento .tile img{padding:0;height:0;min-height:0;background:none}
