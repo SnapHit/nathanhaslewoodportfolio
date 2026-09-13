@@ -147,15 +147,42 @@ strong{font-weight:600}
 .top nav a:hover{color:var(--ink)} .top nav a:hover::after{transform:scaleX(1)}
 .top nav a[aria-current="page"]{color:var(--ink)} .top nav a[aria-current="page"]::after{transform:scaleX(1)}
 
-/* dark header + hero on the homepage */
-.home .top{background:color-mix(in srgb,var(--panel) 84%,transparent);border-bottom-color:var(--panel-2)}
-.home .top .brand{color:var(--panel-ink)}
-/* Not --panel-dim. The homepage header is --panel at 84%, so it sits lighter than the footer
-   the token was set against, and --panel-dim on it measures 4.05:1 worst pixel under the
-   glyphs, at every scroll position and in every lens state. This is the lit variant, 4.97:1.
-   Pre-existing, found while measuring v1.21 and fixed here because it is the front door. */
-.home .top nav a{color:#ADA79A}
-.home .top nav a:hover,.home .top nav a[aria-current="page"]{color:#fff}
+/* ---------- the dark header, on every dark page ---------- */
+/* v1.29.0. This was .home alone, written when the homepage was the only dark page, and the note
+   then said the sticky nav keeps its sitewide light treatment. Four dark pages later that is no
+   longer a decision, it is a near paper bar sitting directly above a near black page.
+
+   Why it never followed on its own: .top's background is color-mix on --paper, and all three dark
+   treatments override --paper on MAIN. The header is a sibling of main, so a page can darken
+   itself completely and the header will not notice. The homepage did not rely on inheritance
+   either, it set .top explicitly, and this does the same thing for all four.
+
+   One declaration reading one token rather than three sets of rules, because /games/ sits on
+   #04070e and the other three on --panel, and the bar has to sit on whichever ground is beneath
+   it rather than on a colour hardcoded from one of them. */
+body.home,body.dark{--top-ground:var(--panel);--top-line:var(--panel-2)}
+body.arcade{--top-ground:#04070e;--top-line:rgba(120,160,195,.20)}
+body.home .top,body.dark .top,body.arcade .top{
+  background:color-mix(in srgb,var(--top-ground) 84%,transparent);
+  border-bottom-color:var(--top-line);
+}
+body.home .top .brand,body.dark .top .brand,body.arcade .top .brand{color:var(--panel-ink)}
+/* Not --ink-2, which is drawn for paper. And not --panel-dim either, which is the obvious dark
+   ground token and the tempting simplification, because the bar is its ground at 84 per cent and
+   therefore sits lighter than the footer that token was set against: forced onto these links it
+   measures 4.11:1 at worst, on the homepage at 860px, under the floor. The v1.21 comment that
+   stood here recorded 4.05:1 for the same test, so this is that warning with a current number
+   rather than a new one. #ADA79A is the lit value and reads 5.74:1 to 7.11:1 across the four
+   bars, worst pixel under the glyphs at every scroll position, including over the arcade hero
+   where the neon passes beneath the bar and lifts it. */
+body.home .top nav a,body.dark .top nav a,body.arcade .top nav a{color:#ADA79A}
+body.home .top nav a:hover,body.home .top nav a[aria-current="page"],
+body.dark .top nav a:hover,body.dark .top nav a[aria-current="page"],
+body.arcade .top nav a:hover,body.arcade .top nav a[aria-current="page"]{color:#fff}
+/* The skip link takes focus on top of the header, and its sitewide pairing is var(--ink) on
+   var(--paper), a near black box. On a dark header that box IS the header. It inverts, the way
+   body.home already inverted it and body.arcade already inverts .hero-skip. */
+body.dark .skip,body.arcade .skip{background:#EFEBE2;color:#171410}
 
 /* ---------- hero ---------- */
 .hero{padding:clamp(3.4rem,7vw,6rem) 0 clamp(2.4rem,4vw,3.4rem);position:relative;overflow:hidden}
@@ -1161,7 +1188,9 @@ body.sh-zoomed .sh-bail{display:inline-flex}
 
 /* ---------- v1.19: the arcade runs dark ---------- */
 /* Only /games/ carries body.arcade, and the treatment is scoped to <main>, so the
-   sticky nav and the site footer keep their sitewide light and warm-dark treatment.
+   site footer keeps its sitewide warm-dark treatment. The sticky nav kept the sitewide
+   light one until v1.29.0, which darkens it on all four dark pages from the header
+   section above rather than from here.
 
    Why the whole run and not just the rack: the neon on the cabinets only reads as
    light coming out of darkness if the darkness is the page, not a stripe in it.
@@ -1872,11 +1901,19 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
     appearance:none;background:none;border:0;padding:0;cursor:pointer;color:var(--ink-2);
     border-radius:10px;transition:color .15s;
   }
-  /* Only the homepage has a dark header. body.arcade darkens main and keeps the sitewide light
-     header, so the dark ground colour on it put a --panel-dim burger on near white paper. */
-  .nav-js body.home .burger{color:var(--panel-dim)}
+  /* v1.29.0: four dark headers now, not one. Before it, body.arcade darkened main and kept the
+     sitewide light header, so following the page's ground here would have put a --panel-dim
+     burger on near white paper. The header is dark on all four, so the ground colour is right on
+     all four. Unlike the nav links above, the icon needs no lit variant: --panel-dim on it
+     measures 5.80:1 to 6.37:1 across the four bars over eight scroll positions, worst on
+     /games/. The difference is size. The links are 0.92rem glyphs and the icon is three 2px
+     bars, so the antialiased fringe that drags a letterform's worst pixel down is a smaller
+     share of a straight edge. */
+  .nav-js body.home .burger,.nav-js body.dark .burger,.nav-js body.arcade .burger{color:var(--panel-dim)}
   .nav-js .burger:hover,.nav-js .burger[aria-expanded="true"]{color:var(--ink)}
-  .nav-js body.home .burger:hover,.nav-js body.home .burger[aria-expanded="true"]{color:var(--panel-ink)}
+  .nav-js body.home .burger:hover,.nav-js body.home .burger[aria-expanded="true"],
+  .nav-js body.dark .burger:hover,.nav-js body.dark .burger[aria-expanded="true"],
+  .nav-js body.arcade .burger:hover,.nav-js body.arcade .burger[aria-expanded="true"]{color:var(--panel-ink)}
   .burger i{position:relative;display:block;width:20px;height:2px;background:currentColor;border-radius:2px;
     transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .18s}
   .burger i::before,.burger i::after{content:"";position:absolute;left:0;width:20px;height:2px;
@@ -2155,8 +2192,10 @@ body.home.lens-ai .bento .tile img{padding:0;height:0;min-height:0;background:no
 
    The mechanism is the one both existing treatments already use: override the ground tokens on
    MAIN rather than rewrite the rules, so .pagehead, .section, .prose, .rows and the rest come
-   along untouched. Scoped to main and not to body on purpose, because the sitewide header, the
-   footer and the reader overlay sit outside it and are meant to stay as they are.
+   along untouched. Scoped to main and not to body on purpose, because the footer and the reader
+   overlay sit outside it and are meant to stay as they are. The header sits outside it too and
+   kept the sitewide light treatment until v1.29.0, which darkens it from the header section,
+   explicitly, rather than by widening this override to the body.
 
    What is NOT swapped here, and is swapped on the homepage, is the accent trio. --signal,
    --index and --ok have lit variants drawn for dark grounds, but swapping them at token level
