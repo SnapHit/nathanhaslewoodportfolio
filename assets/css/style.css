@@ -2140,3 +2140,78 @@ body.home .bento .tile.wide img{
    shipped build, by the same fixed row height, and unclipping it is a layout change to the
    evidence wall rather than an image treatment. */
 body.home.lens-ai .bento .tile img{padding:0;height:0;min-height:0;background:none}
+
+/* ---------- v1.28: /work/ and /systems/ join the dark group ---------- */
+/* The site had a system it had not named. The demonstrations are dark, the homepage with its
+   field and its lens and /games/ with the arcade, and the reading is light, /book/, /super/,
+   /writing/, /about/, /colophon/. /work/ and /systems/ are demonstrations and were sitting on
+   paper, so the nav crossed a ground change that meant nothing.
+
+   The treatment reused is the homepage's: the warm --panel ground, not /games/' cold #04070e.
+   Two reasons. The cold one was chosen so neon reads as light coming out of darkness, and there
+   is no neon on either of these pages. And the stated point of this version is to close the cut
+   between the homepage and the pages beside it in the nav, so the ground that closes it is the
+   homepage's own.
+
+   The mechanism is the one both existing treatments already use: override the ground tokens on
+   MAIN rather than rewrite the rules, so .pagehead, .section, .prose, .rows and the rest come
+   along untouched. Scoped to main and not to body on purpose, because the sitewide header, the
+   footer and the reader overlay sit outside it and are meant to stay as they are.
+
+   What is NOT swapped here, and is swapped on the homepage, is the accent trio. --signal,
+   --index and --ok have lit variants drawn for dark grounds, but swapping them at token level
+   breaks the evidence bars: their rest state already uses the lit variants and their hover state
+   reaches for the deep ones, so a blanket swap makes hover identical to rest and the
+   feedback disappears. The three places on these two pages that need a lit accent are named
+   below instead. */
+html.dark{background:var(--panel);color-scheme:dark}
+body.dark{background:var(--panel)}
+body.dark main{
+  --paper:var(--panel);
+  --ink:var(--panel-ink);
+  --ink-2:var(--panel-dim);
+  --line:var(--panel-2);
+  background:var(--panel);
+  color:var(--ink);
+}
+/* The four white cards on these pages, the simulation and the three outcome tiles, take the same
+   lift the homepage's cards take, #1b1811 off #131109, rather than staying lit islands. .sim-doc
+   inside the simulation keeps reaching for --paper, so it lands on the page ground and stays a
+   step darker than the card holding it, which is the relationship it had on paper. */
+body.dark main .sim,body.dark main .outcomes > div{background:#1b1811}
+/* A row's hover was #fff, which on paper is a lift and on near black is a flashbulb. 6% of --ink,
+   not the homepage's 9%: the lift is still plainly visible at 1.13:1 against the ground, and 9%
+   drags the hovered heading below to 4.42:1 where 6% holds it at 4.81:1. */
+body.dark main a.row:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+/* /work/: on paper the hover deepened the heading and all three bars. On near black deepening is
+   a colour going out, and --signal under a hovered heading measures 3.4:1 here. The hover instead
+   returns each bar to its lit variant and brightens it, so the direction of the feedback matches
+   the ground: 1.25 lifts #F0561D, #3B6BFF and #1FB878 without collapsing the hues into each
+   other. The heading takes --signal-b, 4.81:1 on the lifted row. */
+body.dark main .row:hover .ev-body h3{color:var(--signal-b)}
+body.dark main .row:hover .ev-bar i.sig{background:var(--signal-b)}
+body.dark main .row:hover .ev-bar i.idx{background:var(--index-b)}
+body.dark main .row:hover .ev-bar i.ok{background:var(--ok-b)}
+body.dark main .row:hover .ev-bar i{filter:brightness(1.25)}
+/* /systems/: the verdicts and the active reject state are the two things the brief says must stay
+   unmistakable. They sit on .sim-doc, which keeps reaching for --paper and so lands on the page
+   ground, where --signal measures 3.58:1 and --ok 3.53:1. The lit variants take them to 5.45:1
+   and 7.36:1, measured under the glyphs at every state of a full run. The reject dot and the
+   .sim-doc edge already used --signal-b. */
+body.dark main .sim-verdict.is-reject,
+body.dark main .sim-pipe li.is-active.is-reject .sim-state{color:var(--signal-b)}
+body.dark main .sim-verdict.is-pass{color:var(--ok-b)}
+/* The reader pill and its overlay are appended to body, so they sit outside the override above.
+   That is right for the overlay, which is a light card over a dimmed page on all 32 pages. It is
+   wrong for the pill, whose background is --panel: on paper that is a dark chip at 16.1:1, and on
+   this ground it is the same colour as the page and the only thing left of it is a 1px border at
+   1.19:1. These two pages are the first dark pages that carry the pill, so it gets its container
+   back here: the fill lifts to --panel-2 and the hairline to --panel-dim, 6.43:1 against the
+   ground, which is a weaker edge than the one the pill already draws on paper. Scoped to
+   body.dark, which exists on these two documents and nowhere else. */
+body.dark .reader-pill{background:var(--panel-2);border-color:var(--panel-dim)}
+/* ::selection resolves var() against the originating element, so the --paper override above
+   would paint selected text near black on the orange highlight. Pinned, as both the other dark
+   pages pin it. The background stays --signal, unswapped, so selection reads 5.05:1 here and on
+   every other page. */
+body.dark ::selection{color:#FBFAF6}
