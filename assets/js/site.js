@@ -115,8 +115,11 @@ document.documentElement.classList.add("js");
   var frame = document.getElementById("reader-frame");
 
   /* ---------- site-wide reader pill (every page without the hero frame) ----------
-     A page can opt out with data-no-reader-pill on <body>. /games/ does, because the pill
-     sits bottom right and collides with the More link the hero gate reveals in that corner. */
+     A page can opt out with data-no-reader-pill on <body>. Four do. /games/ opts out because
+     the pill sits bottom right and collides with the More link the hero gate reveals in that
+     corner. /book/, /work/ and /systems/ opt out because they carry the lens instead, which is
+     the same idea done in place rather than in a modal, and two controls for one job in one
+     corner is one too many. */
   if (!frame && !document.body.hasAttribute("data-no-reader-pill")) {
     var pill = document.createElement("button");
     pill.className = "reader-pill";

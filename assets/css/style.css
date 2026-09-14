@@ -1238,9 +1238,9 @@ body.arcade ::selection{color:#FBFAF6}
    transformed page rather than a jump cut.
 
    Scoped under .lens-host, which lens.js adds to <body>. With JavaScript off the class is
-   never added, no control is built, and every rule below is inert. lens.js loads on /book/
-   and, since v1.21, on the homepage; nowhere else. Every other page is untouched because the
-   file is not on it, not because these rules check. */
+   never added, no control is built, and every rule below is inert. lens.js loads on /book/,
+   on the homepage since v1.21 and on /work/ and /systems/ since v1.30; nowhere else. Every
+   other page is untouched because the file is not on it, not because these rules check. */
 @property --lens{syntax:"<number>";initial-value:0;inherits:true}
 @property --li{syntax:"<number>";initial-value:0;inherits:false}
 @property --g{syntax:"<number>";initial-value:0;inherits:true}
@@ -2254,3 +2254,202 @@ body.dark .reader-pill{background:var(--panel-2);border-color:var(--panel-dim)}
    pages pin it. The background stays --signal, unswapped, so selection reads 5.05:1 here and on
    every other page. */
 body.dark ::selection{color:#FBFAF6}
+
+/* ---------- v1.30: the lens on /work/ and /systems/ ---------- */
+/* Both pages load lens.js now and both take the compact control, the same presentation /book/
+   uses, because neither has a #reader-frame for the lens to become. The old reader pill and its
+   overlay are switched off with data-no-reader-pill, the way /book/ and /games/ already do it,
+   so the two controls never share a corner. The pill is untouched on the other twenty nine
+   documents; nothing here is scoped wider than body.dark, which is on these two and nowhere
+   else.
+
+   What these pages have that /book/ does not is a near black ground, so every white surface the
+   lens brings with it has to be answered. This is the homepage's answer rather than a third
+   one: lift the injected cards off the page instead of leaving them as lit islands, and hand
+   the three accents their lit variants wherever they are used as text. The homepage did exactly
+   this when its own Google payload card measured 1.19:1, white on white. */
+
+/* The two injected cards. #1b1811 is the lift v1.28.0 already gave .sim and the outcome tiles
+   on these pages, and the same one the homepage gives its cards. In the AI state the sitewide
+   rule sets background:none and they become the page ground, which is the point of that state. */
+body.dark main .lens-head-in,body.dark main .lens-resp-in{background:#1b1811}
+
+/* The accents, only where they are used as text, and every figure here is on the surface the
+   text actually sits on rather than on the page ground. --index is cobalt, drawn for paper, and
+   reads 2.75:1 on --panel and 2.58:1 on the card; --index-c reads 6.14:1 on the card, which is
+   where the tags and the captions sit. --ok reads 3.31:1 on the card and --ok-b 6.91:1.
+   The solid audit flag is #fff on --signal, 5.27:1, and is the same chip on every page, so it
+   is left alone. There is no rule for .lens-flag.warn here: it is only produced for an image
+   with an empty undeclared alt, and neither of these two documents has an <img> in main, so a
+   rule for it would be code that cannot run. */
+body.dark main .lens-tag,body.dark main .lens-cap{color:var(--index-c)}
+body.dark main .lens-resp-in .lens-cap{color:var(--ok-b)}
+body.dark main .lens-clean{color:var(--ok-b)}
+
+/* The control is the reader pill's problem again, and it was paid for once already in v1.28.0.
+   .lens-ctl is --panel at 94 per cent, which on paper is a dark chip at 16:1 and on this ground
+   is the page with a 1.19:1 border round it. It takes the same container the pill took here:
+   the fill lifts to --panel-2 and the hairline to --panel-dim, 6.42:1 against the ground. The 94
+   per cent is /book/'s and is kept, because the only reason to change it was a contrast figure
+   that turned out to be a measurement artefact, and at 94 or at 100 the thing that actually
+   matters at the foot of the page looks the same. */
+body.dark .lens-ctl{background:color-mix(in srgb,var(--panel-2) 94%,transparent);
+  border-color:var(--panel-dim)}
+
+/* ---- /work/: what happens to the evidence bars ---- */
+/* They are decoration in the strict sense. The figure above each bar is text, the label under
+   it is text, and the bar is a picture of both.
+   In the GOOGLE state they stay and grey with the rest of the wave through the sitewide
+   filter on [data-lens-i], which is the honest half of it: the markup is still there, and what
+   a crawler cannot have is the colour coding, so the colour is what goes.
+   In the AI state they go entirely, because what an assistant receives of each one is
+   <div class="ev-bar"><i></i></div>, two empty elements with no text and no data attribute.
+   Height, margin and opacity rather than overflow. CLAUDE.md records that overflow:hidden
+   silently establishes a scroll container and stops animation-timeline: view() firing, and
+   these bars are driven by exactly that. The fill stays absolutely positioned inside the bar
+   and collapses with it, its scaleX animation untouched.
+   Scoped under .lens-host as well as body.dark, and the reason is the fallback rather than the
+   common case. --a is registered with @property above, initial-value 0, so where @property is
+   supported it resolves to 0 with JavaScript off and these calcs are harmless. Where @property
+   is NOT supported it does not exist at all, the calc is invalid at computed value time, and
+   an invalid var() does not fall back to the previous declaration: it computes to unset, so
+   height would become auto on an empty element and the eight bars would be gone on the exact
+   browser that already has the least. The scoping is what stops that arising, because without
+   JavaScript .lens-host is never added and this rule never matches in the first place, leaving
+   the plain .rows .ev-bar above as the one that applies. */
+body.dark.lens-host main .rows .ev-bar{
+  height:calc((1 - var(--a)) * 5px);
+  margin-bottom:calc((1 - var(--a)) * .6rem);
+  opacity:calc(1 - var(--a));
+}
+
+/* ---- /systems/: the card and the tiles stop being surfaces ---- */
+/* The lift retreats as the AI state arrives, the way the homepage's cards and /book/'s sampler
+   stage do, so the layout falls away and leaves the text. Same .lens-host scoping and the same
+   reason as the bars: on a browser with no @property support and no JavaScript this rule does
+   not match at all, so it never reaches an invalid value, and v1.28.0's flat #1b1811 above is
+   what applies. */
+body.dark.lens-host main .sim,body.dark.lens-host main .outcomes > div{
+  background-color:color-mix(in srgb,#1b1811 calc((1 - var(--a)) * 100%),transparent)}
+body.dark.lens-host main .outcomes > div::before{opacity:calc(1 - var(--a))}
+
+/* ---------- v1.30, second pass: what the sweep found ---------- */
+/* A fine sweep of both pages at every 0.03125 of the lens, worst pixel under the glyphs, turned
+   up several things, and all but one of them are this version's and are answered here.
+   The one that is not: the control's own labels go unreadable while the thumb slides under them.
+   Driven by a real pointer drag through 129 positions, the worst is 1.15:1 at lens 1.5938, the
+   AI label over the thumb's lit ring, and /book/ at v1.29 returns the identical figure at the
+   identical value, as does the other of these two pages. The cause is in lens.js rather than
+   here: apply() only rewrites aria-pressed when the word it announces changes, so through a
+   whole drag the label the thumb is passing under is still the unpressed --panel-dim rather than
+   the white the pressed one gets. It is the lens's own and it wants its own version. What this
+   version does change about the control costs 0.62 at the settled stops, 4.99:1 at worst here
+   against 5.61:1 on /book/, and nothing at all at the drag's worst case. */
+
+/* ---- the page must be untouched at lens 0, and it was not ---- */
+/* lens.js appends a .lens-href inside every link in main. Three of this page's links are a.row,
+   which is display:grid with align-items:baseline, so the annotation became a grid item in its
+   own right and took 30.3px per row even at zero width and zero opacity: measured 3700px of
+   document against v1.29's 3609px at 1280px, and 5591 against 5486 at 390px, with the rows
+   themselves 257,257,239 against 227,227,209. Removing the three nodes restored every figure
+   exactly, so it is them and nothing else.
+   This is the failure .lens-navnote already records above, for the same reason and with the
+   same fix: nothing at all at rest, and once the lens is open the annotation is what it should
+   have been in a grid row anyway, one line spanning the row rather than a stray item pushed
+   into the third column. It grows on --g like everything else, so a held drag holds it part
+   open. Scoped to body.dark: the homepage has .rows too, and there a.row has two children so
+   the annotation lands in the empty third column and costs nothing, which is why this never
+   showed up before. */
+body.dark.lens-host .rows a.row > .lens-href{display:none}
+body.dark.lens-host.lens-open .rows a.row > .lens-href{
+  display:block;grid-column:1/-1;max-width:none;margin-left:0;
+  max-height:calc(var(--g) * 2.4rem);
+}
+
+/* ---- the AI band's dip is budgeted for paper, not for this ---- */
+/* .lens-host main dips to 0.75 opacity across the AI threshold, and the v1.21 comment budgets
+   that depth against the paper pages, where it says the shallowest reading lands at about
+   4.9:1. On a near black ground the text falls toward the ground while the ground barely moves,
+   so the same depth takes every --ink-2 surface on these two pages to 4.12:1 and, measured as
+   painted rather than as computed, as low as 3.97:1 around lens 1.5. That is 122 surfaces on
+   /systems/ alone, from .outcomes p to the eyebrow to both injected cards' keys.
+   0.12 instead of 0.25 leaves --panel-dim at 5.23:1 at the bottom of the dip and keeps the
+   gesture: the page still passes under something, it just no longer passes under the floor.
+   The reduced motion rule has to be restated at this specificity or it would lose to this one
+   and reduced motion would gain a dip it has never had. */
+body.dark.lens-host main{opacity:calc(1 - .12 * 4 * var(--ap) * (1 - var(--ap)))}
+@media (prefers-reduced-motion:reduce){ body.dark.lens-host main{opacity:1} }
+
+/* ---- the annotations have to be readable while they arrive ---- */
+/* Every injected annotation faded in on --g or --ap, which washes out the text that IS on screen
+   rather than only the part still arriving. The head card's own opacity ramps 0.28, 0.61, 0.93
+   across the band, and its caption measured the same way through it reads 1.16, 1.49, 1.96
+   against a flat 2.10 to 2.13 when the reveal is carried by size instead. A drag can be held
+   anywhere in that band indefinitely, which is the argument the .lens-tag rule above already
+   makes for itself, and its own remedy, full opacity by a sixth of the band, only narrows it.
+   So on these two pages the reveal is size alone. They all already grow: the cards by a measured
+   height inside an overflow:hidden wrapper, the tags and the link destinations by max-width, the
+   notes by max-height. The gesture is the same, a thing arriving out of nothing, and the card's
+   opacity stays at 1 throughout, so a glyph is either fully painted or not yet on screen. A
+   clipped glyph is not text anybody is failing to read; a washed one is.
+   The same ramp is on /book/ and the homepage. It is not this version's to fix and it is
+   reported, not touched. */
+body.dark.lens-host .lens-head-in,
+body.dark.lens-host .lens-resp-in,
+body.dark.lens-host .lens-href,
+body.dark.lens-host .lens-navnote,
+body.dark.lens-host .lens-flag,
+body.dark.lens-host .lens-tag{opacity:1}
+
+/* ---- the flagged verdict has to survive being greyed ---- */
+/* Every content block takes filter:grayscale(var(--g)) in the Google state, which is the lens
+   saying that colour is not what a crawler reads. The words survive that; --signal-b does not.
+   Greyscaled it is rgb(115,115,115), which on this ground is 4.01:1 settled and 2.76:1 with the
+   dip on top, and the one thing v1.28.0's brief asked to stay unmistakable is the flagged state.
+   So the verdict crosses to the page's own ink as the page greys, rather than being greyed down
+   from orange: at lens 0 it is exactly the --signal-b v1.28.0 measured at 5.45:1, and by full
+   Google it is --panel-ink, which greyscales to rgb(235,235,235) and reads 15.84:1. The word is
+   what a machine receives, and the word stays readable the whole way across.
+   This also corrects the v1.28.0 note above, which claimed 5.45:1 and 7.36:1 "at every state of
+   a full run": that was true of the only state the page had then, and stopped being true the
+   moment a lens was put on it. */
+body.dark.lens-host main .sim-verdict.is-reject,
+body.dark.lens-host main .sim-pipe li.is-active.is-reject .sim-state{
+  color:color-mix(in srgb,var(--signal-b) calc((1 - var(--g)) * 100%),var(--panel-ink))}
+body.dark.lens-host main .sim-verdict.is-pass{
+  color:color-mix(in srgb,var(--ok-b) calc((1 - var(--g)) * 100%),var(--panel-ink))}
+
+/* ---- the run control in the AI state ---- */
+/* pipeline-sim.js disables the button while the AI state holds, which is honest: the run is
+   JavaScript and that state is about what arrives without it. But .sim-btn[disabled] is a 45
+   per cent wash built for the few seconds of a run, and held indefinitely on this ground it
+   reads 3.98:1, and 2.77:1 at the bottom of the dip. In the AI state the button takes the same
+   flat treatment the injected cards take there, a hairline and no fill, which is both legible
+   at 15.88:1 and an honest picture of what it is by then: an element in the markup rather than
+   a control anybody can work. */
+body.dark.lens-host.lens-ai main .sim-btn[disabled]{
+  opacity:1;background:none;color:var(--ink);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 40%,transparent)}
+
+/* ---- room for the control at the foot of the page ---- */
+/* The control is fixed and centred, and at the bottom of the scroll it lands across the footer's
+   last line. Looked at rather than measured, because every contrast figure this produced turned
+   out to be an artefact: wut.js clips to the element's rectangle without clamping it to the
+   viewport, so a line below the fold gets screenshotted from wherever the clamp lands, which is
+   how a span 130px past the bottom of the screen came back reading 1:1 against the green of the
+   AI dot. Screenshotted at 390px at the foot of the document instead, the last line reads
+   "Static HTML. No framework, no tracking, no" with the pill drawn straight through it and
+   "cookies." behind it. /book/ does the same thing and has since v1.20, at 94 per cent and at
+   100, so the opacity is not what does it. The footer reserves the room the control occupies,
+   which is what a fixed control at the foot of a document needs and what the reader pill this
+   replaces got for free by sitting in the corner. It costs 76px of document at every lens
+   value, which is the honest price of the control being centred rather than tucked away. */
+body.dark.lens-host footer.site .wrap{padding-bottom:calc(2.2rem + 76px)}
+
+/* ---- the two annotations are longer than the one this cap was cut for ---- */
+/* .lens-navnote caps at 6rem so it can grow with --g rather than appear, and that was sized on
+   /book/'s picker note, which is one line at every width. These two are three lines at 1280px
+   and up to seven at 360px, and the cap was cutting them off mid sentence: 51px lost on /work/
+   and 70px on /systems/ at 360px, 33 and 51 at 390px, 15 and 33 at 414px, nothing from 860px up.
+   12rem clears the tallest of them by 26px and the growth is unchanged. */
+body.dark.lens-host.lens-open .lens-navnote{max-height:calc(var(--g) * 12rem)}

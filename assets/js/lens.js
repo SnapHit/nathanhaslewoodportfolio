@@ -1,7 +1,9 @@
 /* lens.js
-   The machine reader lens. Loaded on /book/ and on the homepage, in two presentations of the
-   same mechanism: a small fixed pill on /book/, and the reader frame itself on the homepage,
-   where the frame IS the control and the whole page is the output.
+   The machine reader lens. Loaded on /book/, /work/, /systems/ and the homepage, in two
+   presentations of the same mechanism: a small fixed pill everywhere the page has no
+   #reader-frame, and the reader frame itself on the homepage, where the frame IS the control
+   and the whole page is the output. Which presentation a page gets is decided by whether that
+   frame exists, not by naming the page, so adding the file to a page is the whole opt in.
 
    The reader pill opens a modal that DESCRIBES the page's machine reading. This instead
    turns the page itself into that reading, in place, without covering anything and without
@@ -144,6 +146,40 @@
       spages.length + " excerpts below is already in the HTML.");
     note.setAttribute("aria-hidden", "true");
     picker.insertBefore(note, picker.firstChild);
+  }
+
+  /* The two pieces on this site a machine receives nothing of, each named once rather than
+     tagged item by item, the way the chapter picker above is. Keyed on selectors that exist on
+     one page each, .ev-bar on /work/ and [data-sim] on /systems/, so neither note can turn up
+     anywhere else. Counted live, so the sentence cannot drift from the page. */
+  var bars = main.querySelectorAll(".ev-bar");
+  var firstRows = main.querySelector(".rows");
+  if (bars.length && firstRows) {
+    var bnote = el("div", "lens-navnote",
+      bars.length + " range bars, no text and no data attribute of their own. The figure above " +
+      "each one and the label under it are the content; the bar is a picture of them, and the " +
+      "colour coding is the part a crawler cannot have. In the AI state they are gone, because " +
+      "what an assistant receives of each is two empty elements.");
+    bnote.setAttribute("aria-hidden", "true");
+    firstRows.insertBefore(bnote, firstRows.firstChild);
+  }
+
+  var simRoot = main.querySelector("[data-sim]");
+  if (simRoot) {
+    var simBtns = simRoot.querySelectorAll("button").length;
+    var simStages = simRoot.querySelectorAll("[data-sim-stage]").length;
+    /* Counted live rather than described, because the run rewrites most of these and a
+       sentence that was true when it was typed would stop being true the moment the beats
+       changed. The character count is of the card as served, taken before anything ran. */
+    var simChars = simRoot.textContent.replace(/\s+/g, " ").trim().length;
+    var snote = el("div", "lens-navnote",
+      simBtns + (simBtns === 1 ? " button" : " buttons") + ", no href, and a run built entirely " +
+      "in JavaScript. What is in the HTML is this card at rest: " + simStages +
+      " stage names, one draft sentence and the caption under them, " + simChars +
+      " characters in all. In the AI state the run stops and the card returns to exactly that, " +
+      "because that is what an assistant receives of it.");
+    snote.setAttribute("aria-hidden", "true");
+    simRoot.insertBefore(snote, simRoot.firstChild);
   }
 
   /* ---------------- the head material, and the response ---------------- */

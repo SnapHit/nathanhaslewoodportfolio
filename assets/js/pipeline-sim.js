@@ -22,6 +22,10 @@
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* The caption exactly as the server sent it, read once rather than retyped, so a reset can
+     put the card back to the document rather than to a copy of it. */
+  var SERVED_CAPTION = elCaption ? elCaption.innerHTML : '';
+
   var CLAIM = 'Nearly every new client tells us they wish they\u2019d come sooner.';
   var SOFTENED = 'Many new clients tell us they wish they\u2019d come sooner.';
   var GROUNDED = 'One client we saw last month had been managing symptoms for three years before booking.';
@@ -64,8 +68,18 @@
     elLabel.textContent = 'Draft sentence';
     elVerdict.innerHTML = '';
     elVerdict.className = 'sim-verdict';
+    if (elCaption) elCaption.innerHTML = SERVED_CAPTION;
     root.classList.remove('is-running', 'is-done');
   }
+
+  /* The lens's AI state is the one thing that has to stop this.
+     An assistant receives the markup as served, which is eight stage names and one sentence,
+     so in that state the card goes back to being exactly that instead of animating something
+     nobody on the other end can see. The threshold is not repeated here: lens.js sets
+     body.lens-ai at its own 1.5 and this reads the class, so there is one definition of where
+     the AI state begins. A run in flight is cancelled rather than left with a stage stuck,
+     and the button says so instead of sitting disabled with "Running" on it. */
+  var lensBlocked = false;
 
   var timer = null;
   var passCount = {};
@@ -119,6 +133,7 @@
   }
 
   function run() {
+    if (lensBlocked) return;
     if (timer) clearTimeout(timer);
     passCount = {};
     reset();
@@ -132,11 +147,28 @@
   btn.addEventListener('click', run);
   reset();
 
+  addEventListener('lens:change', function () {
+    var ai = document.body.classList.contains('lens-ai');
+    if (ai === lensBlocked) return;
+    lensBlocked = ai;
+    if (ai) {
+      if (timer) { clearTimeout(timer); timer = null; }
+      reset();
+      btn.textContent = 'Run it';
+      btn.disabled = true;
+    } else {
+      btn.disabled = false;
+    }
+  });
+
   /* autoplay once when it comes into view, so the reader does not have to know to press it */
   var played = false;
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (entries, obs) {
-      if (entries[0].isIntersecting && !played) {
+      /* Not while the lens holds the AI state, and the observer is left connected in that
+         case rather than spent: a reader who arrives here in the AI state and comes back out
+         of it should still get the run the first time they are looking at it. */
+      if (entries[0].isIntersecting && !played && !lensBlocked) {
         played = true;
         run();
         obs.disconnect();
