@@ -118,9 +118,17 @@
      played a second time runs off screen forever. The callback reads current
      state rather than trusting the record, because a record only ever says what
      changed, not what is true now. */
+  /* Two margins, because the two kinds of frame lose different things. A cabinet is a canvas
+     loop: parking it early costs a reload nobody had invested in, and the attract card says so
+     when it comes back. A daily puzzle is a document somebody may have typed a guess into, and a
+     revive is a fresh load rather than a resume, so parking it costs that guess with nothing on
+     screen to say it happened. The phones are 800px apart in flow and 548px tall at 390px, so at
+     120px the act of looking at the next puzzle always destroyed the previous one. 900px keeps
+     the immediate neighbour alive and still parks anything a full screen away. */
   var MARGIN = 120;
+  var AUTO_MARGIN = 900;
   var io = ('IntersectionObserver' in window)
-    ? new IntersectionObserver(function () { sweep(); }, { rootMargin: MARGIN + 'px' })
+    ? new IntersectionObserver(function () { sweep(); }, { rootMargin: AUTO_MARGIN + 'px' })
     : null;
 
   function watch(el) { if (io) io.observe(el); }
@@ -143,10 +151,11 @@
      scrolled away while another was full screen arrives here after the collapse
      has already brought it back on screen. So the record is thrown away unread
      and every frame is judged on its current rectangle. */
-  function offScreen(el) {
+  function offScreen(el, m) {
+    if (m == null) m = MARGIN;
     var r = el.getBoundingClientRect();
-    return r.bottom < -MARGIN || r.top > innerHeight + MARGIN ||
-           r.right < -MARGIN || r.left > innerWidth + MARGIN;
+    return r.bottom < -m || r.top > innerHeight + m ||
+           r.right < -m || r.left > innerWidth + m;
   }
 
   /* Deferred to the next frame, and only ever once per frame. Collapsing moves a
@@ -167,14 +176,15 @@
              because until somebody taps it there is nothing to unload. */
           var box = rec.el || (rec.auto ? rec.screen : null);
           if (!box) continue;
-          if (offScreen(box)) { if (rec.el) park(rec); continue; }
+          if (offScreen(box, rec.auto ? AUTO_MARGIN : MARGIN)) { if (rec.el) park(rec); continue; }
           if (!rec.auto) continue;
           /* On screen, and autoloaded. Only these revive by themselves: a cabinet that
              scrolled away put a card back and is waiting to be asked again, which is the
              whole of its attract loop. A puzzle has no card and nothing to ask, so
              arriving at it has to be enough. Both branches are guarded on there being no
              src, so a frame that is merely on screen is never reloaded and never loses
-             its state to a scroll. */
+             its state to a scroll, and from v1.33.2 a neighbouring puzzle counts as on screen
+             so that looking at one does not throw away the one before it. */
           if (!rec.el) { start(rec, null); continue; }
           if (!rec.el.getAttribute('src')) {
             rec.el.src = rec.src;
