@@ -609,6 +609,17 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
    that band had was a single 51px row with no wordmark. It gets the standard 65px header with
    the brand now, which is what the header has been from 721px up since v1.7. That band is the
    only place above 700px where anything moved. */
+/* v1.33.1: nine items do not fit the band just above the burger. .top nav is overflow-x:auto
+   with the scrollbar hidden, so an item past the right edge is not lost, it is scrollable with
+   no affordance at all: a pointer user sees Contact sliced down the middle and nothing to say
+   why. Measured at 800px, the ninth item put the row's right edge at 823px against a 800px
+   viewport, and the document's own scrollWidth stayed equal to its clientWidth throughout, so an
+   overflow check cannot see this. Tightening the gap in the band buys back 8 gaps worth. The
+   font is untouched: the nav is already .92rem and the header reads at that size everywhere
+   else. */
+@media (min-width:701px) and (max-width:900px){
+  .top nav{gap:.62rem}
+}
 @media (max-width:700px){
   .top .wrap{flex-wrap:wrap;height:auto;gap:.5rem 1rem;padding-top:.6rem;padding-bottom:.6rem;align-items:center}
   .top .brand{display:none}

@@ -49,3 +49,9 @@ Nathan's second book: the straight talking Australian guide to SMSF property inv
 Two browser arcade games built and shipped by Nathan Haslewood, free to play with no ads or sign-in. Overview at https://nathanhaslewood.com.au/games/
 - Beakdown (https://beakdown.fun): a flight arcade game where the higher bird wins. Fly, flap and land on the birds beneath you, wave after wave.
 - Hurtle (https://hurtle.site): an endless descent arcade game. Roll down a narrowing track, dodging blocks and clearing gaps, with ten sliders to tune the run and a daily track shared by everyone in the world.
+
+## Puzzles
+Three daily puzzles created by Mike Linsey and Nathan Haslewood, free to play. All three carry both names: they are collaborations, and distinct from the SnapHit Studios arcade games above, which Nathan makes alone. Overview at https://nathanhaslewood.com.au/puzzles/
+- Reel Haiku (https://reelhaiku.com): a daily puzzle drawn from films.
+- Novlr (https://novlr.com): the same puzzle as Reel Haiku, drawn from written works instead of films.
+- Forgery (https://novlr.com/forgery): the third of the daily puzzles, alongside Novlr.
