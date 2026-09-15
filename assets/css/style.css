@@ -821,6 +821,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   --sh-cabx:1.44;                     /* cabinet width, in phone widths */
   --sh-apx:1.18;                      /* aperture width, likewise */
   --sh-pw:min(calc((100vw - 26px) / 1.44), 300px);
+  /* Substituted HERE, against the root --sh-pw, and inherited as a fixed length. That is
+     correct for .sh-cab-body, which only exists on /games/ where nothing overrides --sh-pw, and
+     it is why .sh-phone reads the ratio at its own element instead: see the note there. */
   --sh-ph:calc(var(--sh-pw) / 0.4615);
 }
 @media (min-width:720px){
@@ -947,7 +950,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
 /* A brushed metal rail, a glass front, an island, side keys. The point of the
    whole block rests on this reading as a phone at a glance. */
 .sh-phone{
-  position:relative;width:var(--sh-pw);height:var(--sh-ph);
+  /* The ratio is applied at the point of use, not read from --sh-ph, because a custom property
+     is substituted where it is DECLARED. --sh-ph is declared on :root, so its var(--sh-pw)
+     resolved against the root value and inherited down as a fixed length: a page overriding
+     --sh-pw, which /puzzles/ does, took its width from the override and its height from the root
+     and came out squat. Measured before the fix, 318 by 548 at 390px and 340 by 517 at 1280,
+     ratios .5806 and .6579 against an intended .4615. /games/ is unaffected either way, because
+     there the two values are the same number. */
+  position:relative;width:var(--sh-pw);height:calc(var(--sh-pw) / 0.4615);
   border-radius:calc(var(--sh-pw) * .135);
   padding:calc(var(--sh-pw) * .022);
   background:linear-gradient(148deg,#8ea2b8 0%,#46525f 16%,#222a34 40%,
@@ -1156,6 +1166,10 @@ body.sh-zoomed .sh-bail{display:inline-flex}
    pill would import the arcade's identity into a page that is not the arcade. The
    phone's rails, keys, island, glass and home bar are untouched, and /games/ keeps
    both glows because these rules are keyed to .pz-stage and .pz-visit. */
+/* One mono line under the h1, the page's own metadata rather than any one puzzle's, so it is
+   stated once instead of three times. .meta is the sitewide component and resolves to
+   --panel-dim on this ground. */
+.pz-credit{margin:0}
 .pz-rack{display:flex;flex-direction:column;align-items:center;gap:clamp(3.2rem,8vh,5.5rem);margin:0}
 .pz-item{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:32rem;width:100%}
 .pz-name{font-family:var(--serif);font-weight:600;font-size:clamp(1.35rem,2.4vw,1.75rem);
@@ -1165,7 +1179,7 @@ body.sh-zoomed .sh-bail{display:inline-flex}
    child is a canvas that scales to whatever box it gets. These children are real web apps laying
    themselves out, and that rule handed them 239px at 1280px, narrower than the 253px the same
    page gives them at 390px and narrower than any phone made. Width driven here instead. */
-.pz-stage{display:flex;justify-content:center;width:100%;--sh-pw:min(calc(100vw - 72px),340px)}
+.pz-stage{display:flex;justify-content:center;width:100%;--sh-pw:min(calc(100vw - 72px),340px);--sh-ph:calc(var(--sh-pw) / 0.4615)}
 /* The framed viewport starts BELOW the island and stops ABOVE the home bar, which is how a real
    phone behaves and is not how the cabinets work. There the child is a full bleed canvas and the
    island sits over empty sky; here the children are web pages with a line of text at the very top
