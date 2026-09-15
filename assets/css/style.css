@@ -1166,6 +1166,17 @@ body.sh-zoomed .sh-bail{display:inline-flex}
    themselves out, and that rule handed them 239px at 1280px, narrower than the 253px the same
    page gives them at 390px and narrower than any phone made. Width driven here instead. */
 .pz-stage{display:flex;justify-content:center;width:100%;--sh-pw:min(calc(100vw - 72px),340px)}
+/* The framed viewport starts BELOW the island and stops ABOVE the home bar, which is how a real
+   phone behaves and is not how the cabinets work. There the child is a full bleed canvas and the
+   island sits over empty sky; here the children are web pages with a line of text at the very top
+   of the document, and on two of the three that line rendered underneath the island, unreadable.
+   Their CSS is cross origin and not ours to touch, so the inset is on this side.
+   The numbers come from the island's own geometry rather than a guess: it is top .028 and height
+   .082 of --sh-pw, so its lower edge is at .110, and .125 clears it. The bar is bottom .030 and
+   height .016, lower edge .046, and .060 clears that. Padding rather than offsets, so the black
+   screen shows above and below exactly as a phone's does, and so the island, glass and bar keep
+   their absolute positions against the screen's outer edge. */
+.pz-stage .sh-screen{padding:calc(var(--sh-pw) * .125) 0 calc(var(--sh-pw) * .060)}
 .pz-stage .sh-phone{box-shadow:
   inset 0 0 0 1px rgba(255,255,255,.22),
   0 0 0 1px rgba(4,8,14,.9),

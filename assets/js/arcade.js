@@ -78,7 +78,14 @@
     var f = document.createElement('iframe');
     f.src = rec.src;
     f.title = rec.name;
-    f.setAttribute('scrolling', 'no');
+    /* The cabinets suppress scrolling, which is right for a game canvas and wrong for a
+       document: Forgery is long and most of the puzzle was unreachable inside the phone. A frame
+       marked data-sh-scroll keeps its own scrollbar. /games/ marks none, so nothing there
+       changes. A child that fits does not scroll, so the attribute costs nothing where it is not
+       needed, which is why all three puzzles carry it rather than only the one measured to
+       overflow: these are documents nobody here can measure, and a truncated puzzle is worse
+       than a scroll surface that never scrolls. */
+    if (!rec.scroll) f.setAttribute('scrolling', 'no');
     f.setAttribute('allow', 'accelerometer; gyroscope; fullscreen');
     f.setAttribute('referrerpolicy', 'no-referrer');
     rec.screen.appendChild(f);
@@ -95,6 +102,7 @@
       out: cab.dataset.out,
       host: cab.dataset.host,
       auto: cab.hasAttribute('data-sh-auto'),
+      scroll: cab.hasAttribute('data-sh-scroll'),
       screen: cab.querySelector('.sh-screen'),
       phone: cab.querySelector('.sh-phone'),
       el: null
