@@ -199,7 +199,7 @@ document.documentElement.classList.add("js");
         raw.textContent = html.split("\n").slice(0, 26).join("\n") + "\n\u2026";
       })
       .catch(function () {
-        raw.textContent = "Fetch unavailable in this environment. Deployed on Netlify, this panel shows the live response for this URL.";
+        raw.textContent = "Fetch unavailable in this environment. Deployed on Cloudflare Workers, this panel shows the live response for this URL.";
       });
   } else if (raw) {
     raw.textContent = "Open this page over HTTP (deployed, or via a local server) and this panel fetches its own URL and prints the raw response.";

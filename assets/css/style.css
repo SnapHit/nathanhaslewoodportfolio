@@ -258,7 +258,19 @@ body.home main .frame{
 .panel-person .quicklinks{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.15rem}
 
 .kv{display:grid;grid-template-columns:190px 1fr;gap:.5rem 1.4rem;font-size:.93rem;margin:0}
-.kv dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#8a8272;padding-top:.15em}
+/* v1.31: 3.81:1 on the overlay card's white, under the floor, and it had been since the
+   overlay shipped. #756d5f is the same hue darkened by 21, 21 and 19 of the three channels, and
+   reads 5.11:1 on the card's white. That white is hardcoded #fff with no dark variant, and the
+   ground resolved under the terms is rgb(255,255,255) on every page that builds the overlay. On
+   the site's paper, #FBFAF6, which is what the card's head strip takes, the same grey is 4.89:1,
+   so it would clear the floor there too. The overlay also paints a dark scrim behind the card,
+   but no .kv ever sits on it.
+   The overlay is the only thing on the site that builds a .kv, so nothing else moves, and nothing
+   else moving is the limit of this fix rather than the end of the problem: #8a8272 is still the
+   declared colour of ten other rules, and 139 text nodes across 19 documents read 3.64:1 on paper
+   or 3.81:1 on white at 11.2 to 12.8px. That is recorded in README.md and deliberately not
+   changed here, because this version is not allowed to alter any page's appearance. */
+.kv dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#756d5f;padding-top:.15em}
 .kv dd{margin:0}
 .kv dd.check{color:var(--ok);font-weight:600}
 .kv .outline{font-family:var(--mono);font-size:.79rem;line-height:1.75;color:var(--ink-2)}
@@ -317,11 +329,14 @@ body.home main .frame{
 /* ledger rows */
 .rows{border-top:1px solid var(--line)}
 .row{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.75fr) minmax(0,12.5rem);gap:.4rem 2rem;align-items:baseline;padding:1.35rem .6rem;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;position:relative;transition:background .18s;border-radius:8px}
-.row h3{font-family:var(--serif);font-weight:600;font-size:1.24rem;letter-spacing:-.01em;margin:0;transition:color .15s}
+/* Two levels, because the row is a component and the level is the page's to decide. The
+   homepage's rows sit under a section h2 and are h3; /work/ and /writing/ have nothing above
+   theirs, so from v1.31 they are h2. Identical type either way. */
+.row h2,.row h3{font-family:var(--serif);font-weight:600;font-size:1.24rem;letter-spacing:-.01em;margin:0;transition:color .15s}
 .row p{margin:0;font-size:.94rem;color:var(--ink-2);line-height:1.6;max-width:52ch}
 .row .tag{justify-self:end;text-align:right;white-space:normal;line-height:1.6}
 a.row:hover{background:#fff;text-decoration:none}
-a.row:hover h3{color:var(--ink)}
+a.row:hover h2,a.row:hover h3{color:var(--ink)}
 a.row::after{content:"→";position:absolute;right:.8rem;top:1.35rem;font-family:var(--mono);color:var(--line);transition:color .15s,transform .2s}
 a.row:hover::after{color:var(--ink);transform:translateX(4px)}
 @media (max-width:760px){.row{grid-template-columns:1fr}.row .tag{justify-self:start;text-align:left;order:-1}a.row::after{display:none}}
@@ -490,7 +505,7 @@ footer.site::before{content:"";position:absolute;top:0;left:0;right:0;height:3px
 .giant{font-family:var(--serif);font-weight:700;font-size:clamp(3rem,11.5vw,9.6rem);line-height:.95;letter-spacing:-.045em;color:#231F17;padding:3rem var(--gutter) 0;white-space:nowrap;overflow:hidden;user-select:none}
 .giant span{color:inherit}
 footer.site .wrap{padding-block:2.4rem 2.2rem;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:2.4rem}
-footer.site h4{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--panel-dim);margin:0 0 .9rem;font-weight:500}
+footer.site h2{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--panel-dim);margin:0 0 .9rem;font-weight:500}
 footer.site ul{list-style:none;margin:0;padding:0}
 footer.site li{margin:.4rem 0}
 footer.site a{color:var(--panel-ink);text-decoration-color:color-mix(in srgb,var(--panel-ink) 35%,transparent);font-size:.92rem}
@@ -630,7 +645,7 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 .rows .ev-lab{font-family:var(--mono);font-size:.685rem;line-height:1.55;letter-spacing:.04em;
   text-transform:uppercase;color:var(--ink-2);margin:0;text-wrap:pretty}
 .rows .ev-body{min-width:0}
-.rows .ev-body h3{margin:0 0 .45rem}
+.rows .ev-body h2,.rows .ev-body h3{margin:0 0 .45rem}
 .rows .ev-body p{margin:0 0 .5rem}
 .rows .ev-body .tag{justify-self:start;text-align:left}
 @media (max-width:760px){
@@ -669,7 +684,7 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 
 /* Interaction craft, site-wide. */
 a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-offset:3px;border-radius:4px}
-.row:hover .ev-body h3{color:var(--signal)}
+.row:hover .ev-body h2,.row:hover .ev-body h3{color:var(--signal)}
 .row:hover .ev-bar i.sig{background:var(--signal)}
 .row:hover .ev-bar i.idx{background:var(--index)}
 .row:hover .ev-bar i.ok{background:var(--ok)}
@@ -1391,7 +1406,20 @@ body.home .btn.solid .lens-href{background:none;padding:0}
 .lens-host.lens-ai .sampler-stage{display:block;min-height:0}
 .lens-host.lens-ai .pagehead .headgrid{display:block}
 .lens-host.lens-ai .prose,.lens-host.lens-ai .spage p,.lens-host.lens-ai .spage ul{max-width:none}
-.lens-host.lens-ai h1,.lens-host.lens-ai h2,.lens-host.lens-ai h3,
+/* Scoped to main from v1.31. It was unscoped, and that was harmless only while the sitewide
+   footer's headings were h4: the moment they became h2 this rule reached them, and the footer's
+   "Pages" and "Machine layer" lost their .08em in the AI state on all four lens pages. Measured
+   on all four with the rule injected back on top of this build: 0.9216px scoped, normal unscoped.
+   Two of the five .lens-host.lens-ai rules directly above are already scoped to main and three
+   are not, so this is not a house style being followed. It is scoped because a heading level is
+   the one thing in this list that the chrome also uses.
+   .sig stays unscoped, and the reason is narrower than it looks: the footer signature is a .sig
+   and is meant to go mono with the page, but on /work/ the same selector also reaches the two
+   i.sig bars inside main. Those are empty elements with a background and no text, so a font and a
+   tracking do nothing to them. .spage h3 needs no exemption at all: all thirteen .spage headings
+   on /book/ are inside main, so that clause is redundant with the main h3 one beside it. Both are
+   left alone here because removing them is a change this version has no licence to verify. */
+.lens-host.lens-ai main h1,.lens-host.lens-ai main h2,.lens-host.lens-ai main h3,
 .lens-host.lens-ai .sig,.lens-host.lens-ai .spage h3{font-family:var(--mono);font-weight:500;letter-spacing:0}
 /* Decoration retreats continuously rather than switching off. */
 /* Each keeps its own resting radius. One shared 16px silently rounded .callout up from its
@@ -2227,7 +2255,7 @@ body.dark main a.row:hover{background:color-mix(in srgb,var(--ink) 6%,transparen
    returns each bar to its lit variant and brightens it, so the direction of the feedback matches
    the ground: 1.25 lifts #F0561D, #3B6BFF and #1FB878 without collapsing the hues into each
    other. The heading takes --signal-b, 4.81:1 on the lifted row. */
-body.dark main .row:hover .ev-body h3{color:var(--signal-b)}
+body.dark main .row:hover .ev-body h2,body.dark main .row:hover .ev-body h3{color:var(--signal-b)}
 body.dark main .row:hover .ev-bar i.sig{background:var(--signal-b)}
 body.dark main .row:hover .ev-bar i.idx{background:var(--index-b)}
 body.dark main .row:hover .ev-bar i.ok{background:var(--ok-b)}

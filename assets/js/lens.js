@@ -192,15 +192,40 @@
     return dd;
   }
 
-  /* The same level check across the whole document, so the card can name what its own
-     scope leaves out instead of appearing to have found nothing anywhere. */
+  /* The same level check outside main, so the card can name what its own scope leaves out
+     instead of appearing to have found nothing anywhere.
+
+     The chrome's headings are collected first and walked on their own, rather than walked in
+     place with main's skipped over. One counter running through everything is how this got
+     fooled: /work/ ran h1 straight to eight h3, so the footer's h4 followed an h3 and read as a
+     legal step, and the audit said the chrome was clean while its own two headings sat at h4
+     under a document h1, three levels down with two missing, on all thirty two documents that
+     carry them.
+
+     Collecting first is what makes the answer independent of main. Walking in place and resetting
+     the counter at each of main's headings still couples the two, because the reset only fires
+     where main has a heading to fire on: the same chrome markup then returns 0 or 1 depending on
+     whether main contains any heading at all. Verified on synthetic documents, not reasoned.
+
+     With no h1 there is nothing for the chrome to be rooted in, so this returns 0 rather than
+     measure against a level that does not exist. Measured against 0, an ordinary footer h2 reads
+     as a skip and a footer h1 reads as fine, which is backwards. A missing h1 is a different
+     fault and not this counter's to report. */
   function outsideSkips() {
+    var h1 = document.querySelector("h1");
+    if (!h1) return 0;
     var all = document.querySelectorAll("h1,h2,h3,h4,h5,h6");
-    var prev = 0, n = 0;
-    for (var i = 0; i < all.length; i++) {
-      var lv = +all[i].tagName.slice(1);
-      if (prev && lv > prev + 1 && !main.contains(all[i])) n++;
-      prev = lv;
+    /* Named node rather than el, which is this file's element helper. Nothing in this loop calls
+       it today, and shadowing it here is how that stops being true quietly. */
+    var chrome = [], node, i;
+    for (i = 0; i < all.length; i++) {
+      node = all[i];
+      if (node === h1 || !main.contains(node)) chrome.push(+node.tagName.slice(1));
+    }
+    var prev = chrome[0], n = 0;
+    for (i = 1; i < chrome.length; i++) {
+      if (chrome[i] > prev + 1) n++;
+      prev = chrome[i];
     }
     return n;
   }
@@ -255,7 +280,8 @@
     var v = kv(al, "result", total === 0 ? "nothing found" : total + " to look at");
     if (total === 0) v.className = "lens-clean";
     /* Scoped to main, so say so, and count what falls outside it rather than let a clean
-       result imply a clean document. The sitewide footer runs h4 under an h2. */
+       result imply a clean document. The sitewide footer ran h4 under an h2 until v1.31, which
+       is the fault this row exists to have caught and did not. */
     var outside = outsideSkips();
     kv(al, "outside main", outside === 0 ? "nothing" :
        outside + " heading skip" + (outside === 1 ? "" : "s") + " in the sitewide chrome");
