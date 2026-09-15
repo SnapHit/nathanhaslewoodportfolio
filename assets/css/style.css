@@ -189,7 +189,8 @@ body.dark .top nav a:hover,body.dark .top nav a[aria-current="page"],
 body.arcade .top nav a:hover,body.arcade .top nav a[aria-current="page"]{color:#fff}
 /* The skip link takes focus on top of the header, and its sitewide pairing is var(--ink) on
    var(--paper), a near black box. On a dark header that box IS the header. It inverts, the way
-   body.home already inverted it and body.arcade already inverts .hero-skip. */
+   body.home already inverted it. /games/ had a second inverted skip link of its own until v1.36,
+   .hero-skip, which went with the gate it was an escape hatch from. */
 body.dark .skip,body.arcade .skip{background:#EFEBE2;color:#171410}
 
 /* ---------- hero ---------- */
@@ -764,10 +765,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   .sim-text{font-size:1.12rem}
 }
 
-/* ---------- v1.17: full-viewport hero game ---------- */
-/* The game loads on arrival and fills the screen under the nav. The way onward is
-   withheld until the ducks are cleared, matching snap-hit.online. Ships unlocked;
-   hero-game.js adds .game-locked, so no JavaScript means a working link, not a trap. */
+/* ---------- v1.17: full-viewport hero game, ungated in v1.36 ---------- */
+/* The game loads on arrival and fills the screen under the nav. v1.17 withheld the way onward
+   until the ducks were cleared; v1.36 removed that. A visitor who does not play the game was
+   concluding the game was the whole page and never reaching the three cabinets under it, which
+   are the point. The control is plain markup now, opaque and clickable at first paint with no
+   class, no script and no gesture. */
 .hero-game{position:relative;width:100%;height:calc(100dvh - 56px);min-height:420px;
   background:#04070e;overflow:clip}
 @media (max-width:760px){.hero-game{height:calc(100dvh - 92px)}}
@@ -780,30 +783,33 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
 @media (max-width:700px){.nav-js .hero-game{height:calc(100dvh - 65px)}}
 .hero-game-frame{display:block;width:100%;height:100%;border:0;background:#04070e}
 
-.hero-down{position:absolute;right:max(14px,env(safe-area-inset-right));
-  bottom:max(16px,env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:.45rem;
-  padding:.6rem .9rem;border-radius:999px;text-decoration:none;
-  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
-  color:#EFEBE2;background:rgba(10,9,7,.72);border:1px solid rgba(239,235,226,.28);
-  backdrop-filter:blur(8px);opacity:1;transform:translateY(0);pointer-events:auto;
-  transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.3,1)}
-.hero-down:hover{background:rgba(10,9,7,.9);border-color:var(--index-b)}
-.hero-down svg{width:16px;height:10px;animation:hero-bob 1.9s ease-in-out infinite}
+/* Centred rather than tucked into the corner, because this is the primary way onward and a
+   corner pill reads as a footnote on somebody else's game. Lifted 120px off the hero's bottom
+   edge: at 390 by 844 the hero runs to y844 and the control's lower edge lands at y724, inside
+   the 750px that survives a 94px band of browser chrome. The old rule put it at y802, invisible
+   and below the fold at once.
+   OPAQUE, not the old 72 per cent wash. What sits behind it is a live cross origin game whose
+   ground nobody here controls, and a translucent chip makes the label's legibility a function of
+   whatever frame is showing. An opaque chip makes it a constant: #EFEBE2 on #0A0907 is 16.6:1
+   whatever the ducks are doing. The backdrop blur went with the transparency, having nothing
+   left to blur.
+   No opacity or transform transition either. Both existed to animate the gate opening.
+   width:max-content is load bearing, not tidiness. An absolutely positioned box with left:50%
+   shrinks to fit the space left of the offset, so at a 320px viewport it had 160px to work in
+   and broke the label over two lines. max-content gives it its natural 178px, and the max-width
+   is the guard for a viewport narrower than the pill itself. */
+.hero-down{position:absolute;left:50%;transform:translateX(-50%);
+  bottom:max(120px,calc(env(safe-area-inset-bottom) + 120px));
+  display:inline-flex;align-items:center;gap:.6rem;
+  width:max-content;max-width:calc(100% - 2rem);
+  padding:.85rem 1.3rem;border-radius:999px;text-decoration:none;
+  font-family:var(--mono);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  color:#EFEBE2;background:#0A0907;border:1px solid rgba(239,235,226,.55);
+  box-shadow:0 10px 30px -10px rgba(0,0,0,.92);
+  transition:background .2s ease,border-color .2s ease}
+.hero-down:hover,.hero-down:focus-visible{background:#171410;border-color:var(--index-b)}
+.hero-down svg{width:18px;height:11px;animation:hero-bob 1.9s ease-in-out infinite}
 @keyframes hero-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
-
-/* locked: the way onward is hidden until the run is cleared */
-.game-locked .hero-down{opacity:0;transform:translateY(14px);pointer-events:none}
-/* three escape hatches: cleared, timed out, or reached by keyboard */
-.game-locked.game-timeout .hero-down,
-.game-locked.game-keyboard .hero-down{opacity:1;transform:translateY(0);pointer-events:auto}
-
-/* always reachable by keyboard, visible only on focus */
-.hero-skip{position:absolute;left:50%;top:1rem;transform:translate(-50%,-160%);
-  z-index:3;padding:.55rem .9rem;border-radius:999px;
-  font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
-  background:var(--paper);color:var(--ink);text-decoration:none;border:1px solid var(--ink);
-  transition:transform .2s ease}
-.hero-skip:focus{transform:translate(-50%,0)}
 
 /* ---------- v1.18: SnapHit cabinets, ported from snap-hit.online ---------- */
 /* Ported from the studio site so the portfolio and the studio show the same machine.
@@ -1208,7 +1214,6 @@ body.dark .sh-screen iframe{color-scheme:light}
 @media (prefers-reduced-motion:reduce){
   .hero-down{transition:none}
   .hero-down svg{animation:none}
-  .hero-skip{transition:none}
 }
 
 /* ---------- v1.19: the studio card, ported from snap-hit.online ---------- */
@@ -1325,7 +1330,6 @@ body.arcade main{
 body.arcade .pagehead::before{opacity:.34}
 /* The skip link is a focus affordance and has to stay high contrast, so it keeps
    the light-on-dark pairing rather than following the token flip. */
-body.arcade .hero-skip{background:#EFEBE2;color:#171410;border-color:#EFEBE2}
 /* ::selection resolves var() against the originating element, so the --paper override
    above would paint selected text near black on the orange highlight. Pinned to paper. */
 body.arcade ::selection{color:#FBFAF6}
@@ -1840,7 +1844,7 @@ body.home main a.row:hover{background:color-mix(in srgb,var(--ink) 9%,transparen
 body.home ::selection{color:#FBFAF6}
 /* The skip link is a focus affordance before it is anything else. background:var(--ink) is
    near black on paper, which on a near black page is an invisible box holding legible text.
-   Inverted, the way body.arcade inverts .hero-skip. */
+   Inverted, the way body.dark and body.arcade invert it above. */
 body.home .skip{background:#EFEBE2;color:#171410}
 /* The hero band is dark at every value, not only once the palette has crossed, so a tag in it
    is cobalt on near black from the first frame of the band: 2.29:1 held at a quarter open. It

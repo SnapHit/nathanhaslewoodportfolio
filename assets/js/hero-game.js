@@ -1,53 +1,23 @@
 /* hero-game.js
-   The games page opens with the SnapHit demo filling the viewport. The way onward is
-   withheld until the player clears the ducks, which is the same gate snap-hit.online uses.
+   The games page opens with the SnapHit demo filling the viewport. All this file does now is
+   park the frame when it scrolls away, so a canvas game is not running under the rest of the
+   page.
 
-   The game is framed from snap-hit.online and posts { snaphit: 'cleared' } to the parent
-   with a wildcard target origin when a run is cleared, so the signal crosses origins.
-   We still check the origin ourselves rather than trusting any framed page.
+   v1.17 withheld the way onward until the player cleared the ducks, the same gate
+   snap-hit.online uses, and v1.36 removed it. The gate was the wrong trade here. Someone who
+   lands on a full screen duck game and does not play it concludes that is the whole page, and
+   never reaches Drift Fever, Hurtle or Beakdown, which are what the page is for. Losing those
+   three to a visitor is worse than losing the gate. Gone with it: the game-locked class, the
+   nh_snaphit_cleared key, the postMessage listener for { snaphit: 'cleared' }, the 45 second
+   safety timeout and the Tab press reveal. Every one of them existed only to open the gate, so
+   none of them outlives it.
 
-   Progressive enhancement: the markup ships unlocked. This script adds the lock, so with
-   JavaScript disabled the visitor gets a working link onward instead of a dead end. The
-   skip link is always reachable by keyboard for anyone who does not want to play. */
+   The control is now plain markup, visible and clickable before this file runs at all, which is
+   why nothing here touches it. */
 (function () {
-  var GAME_ORIGIN = 'https://snap-hit.online';
-  var KEY = 'nh_snaphit_cleared';
-
   var frame = document.getElementById('heroGame');
   var hero = document.querySelector('.hero-game');
   if (!frame || !hero) return;
-
-  function unlock() {
-    document.body.classList.remove('game-locked');
-    try { localStorage.setItem(KEY, '1'); } catch (e) {}
-  }
-
-  /* Someone who has already cleared it once is never gated again. */
-  var alreadyCleared = false;
-  try { alreadyCleared = !!localStorage.getItem(KEY); } catch (e) {}
-
-  if (!alreadyCleared) document.body.classList.add('game-locked');
-
-  window.addEventListener('message', function (e) {
-    if (e.origin !== GAME_ORIGIN) return;
-    if (e.source !== frame.contentWindow) return;
-    if (e.data && e.data.snaphit === 'cleared') unlock();
-  });
-
-  /* Safety valve: if the game fails to load or never signals, do not trap anyone.
-     After 45 seconds the way onward appears regardless. */
-  setTimeout(function () {
-    if (document.body.classList.contains('game-locked')) {
-      document.body.classList.add('game-timeout');
-    }
-  }, 45000);
-
-  /* Anyone reaching the gate by keyboard gets out immediately. */
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Tab' && document.body.classList.contains('game-locked')) {
-      document.body.classList.add('game-keyboard');
-    }
-  });
 
   /* Park the game once it scrolls away so it is not running under the rest of the page. */
   if ('IntersectionObserver' in window) {
