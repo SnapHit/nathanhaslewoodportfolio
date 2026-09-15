@@ -130,9 +130,12 @@
      loop: parking it early costs a reload nobody had invested in, and the attract card says so
      when it comes back. A daily puzzle is a document somebody may have typed a guess into, and a
      revive is a fresh load rather than a resume, so parking it costs that guess with nothing on
-     screen to say it happened. The phones are 800px apart in flow and 548px tall at 390px, so at
-     120px the act of looking at the next puzzle always destroyed the previous one. 900px keeps
-     the immediate neighbour alive and still parks anything a full screen away. */
+     screen to say it happened. At 390px the phones are 689px tall and their tops 941px apart, so
+     252px of page separates one from the next and at 120px the act of looking at either always
+     destroyed the other. 900px keeps the immediate neighbour alive and still parks anything a
+     full screen away.
+     Those two numbers were 548 and 800 until v1.34.1, which is the squat geometry v1.34.0
+     removed: the comment justifying a live constant was still quoting the bug. Re-measured. */
   var MARGIN = 120;
   var AUTO_MARGIN = 900;
   var io = ('IntersectionObserver' in window)
