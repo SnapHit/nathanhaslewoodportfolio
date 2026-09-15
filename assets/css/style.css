@@ -2,8 +2,8 @@
    Type: Instrument Sans, one family for everything a person reads · JetBrains Mono (machine layer)
    Palette: paper, ink, and the three readers: orange (people) · cobalt (Google) · green (AI)
    Ink on paper is three tiers, and from v1.32 all three are tokens. Measured on --paper:
-   --ink 17.58:1, --ink-2 7.33:1, --ink-3 4.89:1, each about 1.5 times quieter than the one
-   above it. --line at 1.25:1 is a rule, never text. On the three dark grounds --ink-3 tracks
+   --ink 17.58:1, --ink-2 7.33:1, --ink-3 4.89:1. The steps are not even: --ink to --ink-2 is
+   2.40 times and --ink-2 to --ink-3 is 1.50. --line at 1.25:1 is a rule, never text. On the three dark grounds --ink-3 tracks
    --ink-2 rather than taking its own value, because there the darker grey is the worse one and
    the tier has nowhere to go: see the note on body.arcade main. */
 
@@ -1225,14 +1225,19 @@ body.arcade main{
   --paper:#04070e;
   --ink:#e8eef6;
   --ink-2:#9fb3c8;
-  /* The quiet tier follows the ground. --ink-3's light value is 3.47:1 here, measured worst
-     pixel under the glyphs, where the grey it replaces was 4.65:1: on a near black page the
-     darker grey is the WORSE one, and the brief's blanket substitution would have shipped a new
-     failure to fix an old one. There is no room for a real third tier on these grounds either.
-     --ink-2 is already the dim value, and a step 1.5 times quieter than it lands at 4.28:1, so
-     the quietest passing third tier available is only 1.30 times down rather than 1.50 and would
-     cost a new palette entry for one element on one page. It tracks --ink-2 instead, which reads
-     6.42:1 on --panel, 6.03:1 on the homepage at rest and 9.36:1 at the arcade end. */
+  /* The quiet tier follows the ground, and the case that forced it is on the HOMEPAGE, not here:
+     a .quote figcaption on body.home main, whose card ground is a near black mix. Measured worst
+     pixel under the glyphs there, --ink-3's light value is 3.47:1 where the grey it replaces was
+     4.65:1. On this page the same pair would be 3.94:1 and 5.30:1, and on body.dark main 3.70:1
+     and 4.96:1, all three the same way round: on a near black ground the darker grey is the WORSE
+     one, so a blanket substitution ships a new failure to fix an old one. /games/ is the only
+     body.arcade document and it matches none of the eleven selectors, so nothing was measured on
+     this ground; the rule is here because the ground is, not because anything needed it.
+     There is no room for a real third tier on any of them either. --ink-2 is already the dim
+     value at 6.42:1 on --panel, a step 1.5 times quieter lands at 4.28:1, and the quietest grey
+     that still clears 4.9:1 on every dark ground is only 1.09 times quieter than --ink-2, which
+     is not a step anybody can see. It tracks --ink-2 instead, which reads 6.42:1 on --panel,
+     6.03:1 on the homepage at rest and 9.36:1 at the arcade end. */
   --ink-3:var(--ink-2);
   --line:rgba(120,160,195,.20);
   --ok:#5fe08a;
