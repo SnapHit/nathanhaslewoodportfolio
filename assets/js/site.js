@@ -116,8 +116,10 @@ document.documentElement.classList.add("js");
 
   /* ---------- site-wide reader pill (every page without the hero frame) ----------
      A page can opt out with data-no-reader-pill on <body>. Four do. /games/ opts out because
-     the pill sits bottom right and collides with the More link the hero gate reveals in that
-     corner. /book/, /work/ and /systems/ opt out because they carry the lens instead, which is
+     the pill sits bottom right and so does that page's own way onward. The reason survived the
+     thing it was written about: the sentence here used to say the gate reveals that link, and the
+     gate went in v1.36, but v1.37 moved the link into that corner for good, so the collision the
+     opt out prevents is now permanent rather than conditional. /book/, /work/ and /systems/ opt out because they carry the lens instead, which is
      the same idea done in place rather than in a modal, and two controls for one job in one
      corner is one too many. */
   if (!frame && !document.body.hasAttribute("data-no-reader-pill")) {

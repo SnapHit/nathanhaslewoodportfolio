@@ -788,16 +788,28 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
    120px off the foot, it sat squarely on SnapHit's slingshot, which is the game's primary control
    and the thing a player most needs to see. Obscuring the game to advertise the page below it is
    the worse trade, so the pill takes the corner and accepts reading as a footnote.
-   Anchored to the HERO's bottom right, and the hero's bottom edge is 100dvh, so the position is
-   measured against the dynamic viewport and holds whatever the browser chrome is doing. At 390 by
-   844 with the chrome collapsed the hero ends at y844 and the control's lower edge lands at y820;
-   with a 94px band expanded, 100dvh resolves to 750 and the lower edge lands at y726. Above the
-   fold either way, because it is pinned to the fold rather than to a fixed number.
-   The insets add the safe area rather than taking the larger of the two, because a home indicator
-   and a rounded display corner are additional to the margin the design wants, not a substitute
-   for it. 24px up and 16px in on a device with no inset; 58px up on a phone with a 34px indicator.
-   The game's own controls are top left (sound) and top right (reload), so the bottom right corner
-   is the one corner that was already free of them.
+   Anchored to the HERO's bottom right. The hero's bottom edge is 100dvh in the ordinary case, so
+   the position is measured against the dynamic viewport and holds whatever the browser chrome is
+   doing: at 390 by 844 the lower edge lands at y820, and with a 94px band expanded, 100dvh
+   resolves to 750 and it lands at y726.
+   THE MAX() TERM IS THE WHOLE REASON THIS WORKS ON A PHONE IN LANDSCAPE. The hero's foot is only
+   100dvh while its height rule wins. Below about 485px of viewport height the min-height of 420px
+   above wins instead, the hero stops shrinking, and its foot runs off the bottom of the screen.
+   v1.37.0 shipped without allowing for that and put the control entirely off screen on every
+   phone in landscape: at 844 by 390 it sat at y417 to y461 in a 390px viewport. v1.36's 120px
+   lift had covered the same case by accident. 511px is where the hero's foot lands when the
+   min-height wins and JavaScript is off, which is the lower of the two header heights, so the
+   term lifts the control by exactly the overhang and never by more than it needs. The plain
+   bottom above it is the fallback for a browser with no dvh support, where the whole enhanced
+   declaration is dropped rather than leaving the control unpositioned.
+   The safe area insets are added rather than substituted, because a home indicator is additional
+   to the margin the design wants rather than a replacement for it. As shipped they resolve to
+   zero on every device: no page on this site sets viewport-fit=cover, so the layout viewport is
+   already the safe area. They are there for if that ever changes, and the fallback value keeps
+   the rule valid meanwhile.
+   The brief for this version gives the game's own controls as sound top left and reload top
+   right, which is why the bottom right was chosen. That is the owner's statement about a document
+   this container cannot load, not something measured here.
    SMALLER than v1.36's 178 by 50, because a corner chip over a live play field should take the
    least room that still says where it goes. The label is unchanged.
    OPAQUE, not the old 72 per cent wash. What sits behind it is a live cross origin game whose
@@ -806,15 +818,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
    whatever the ducks are doing. The backdrop blur went with the transparency, having nothing
    left to blur.
    No opacity or transform transition either. Both existed to animate the gate opening.
-   width:max-content stays. Right anchoring leaves the box far more room to shrink into than
-   left:50% did, so it is no longer the only thing stopping the label wrapping, but it still
-   guarantees the pill is its natural width at every viewport rather than the widest the corner
-   happens to allow. The max-width is the guard for a viewport narrower than the pill itself. */
+   width:max-content went with the centring that needed it. An absolutely positioned box shrinks
+   to fit at min(max-content, available), and right anchoring leaves it the whole width of the
+   hero to shrink into, so max-content was asking for a width it was already getting: measured,
+   the box is identical with and without it at every viewport from 150px up. The max-width stays,
+   as the guard for a viewport narrower than the pill itself. */
 .hero-down{position:absolute;
   right:calc(env(safe-area-inset-right, 0px) + 16px);
   bottom:calc(env(safe-area-inset-bottom, 0px) + 24px);
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 24px + max(0px, 511px - 100dvh));
   display:inline-flex;align-items:center;gap:.5rem;
-  width:max-content;max-width:calc(100% - 2rem);
+  max-width:calc(100% - 2rem);
   padding:.7rem 1.05rem;border-radius:999px;text-decoration:none;
   font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
   color:#EFEBE2;background:#0A0907;border:1px solid rgba(239,235,226,.55);
