@@ -232,7 +232,7 @@ document.documentElement.classList.add("js");
     "/work/": "Eight decision stories, with the numbers behind them",
     "/systems/": "Production AI, with the governance built in",
     "/games/": "SnapHit Studios. Three arcade games, playable here",
-    "/puzzles/": "Three daily puzzles, made with Mike Linsey",
+    "/puzzles/": "Novlr, Reel Haiku and Forgery, playable here",
     "/book/": "Build, Stabilise, Leverage. Australian property, 441 pages",
     "/super/": "SMSF Property Investing. The whole book, free",
     "/about/": "Fifteen years across banking, government and defence",
