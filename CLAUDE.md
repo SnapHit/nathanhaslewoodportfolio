@@ -15,6 +15,8 @@ There is one maintainer and no review step. Branches and PRs create manual merge
 
 Pushing to `main` deploys to production in about a minute. There is no staging. Verify before you push, not after. Git history is the rollback: if something breaks, revert the commit and push again.
 
+**Never hold completed work uncommitted while waiting on verification.** An uncommitted working tree is the bigger risk: it is lost on a container restart, while a defect is one commit away from a fix. If verification is still running and the work is otherwise done, commit, push, and record what is unconfirmed in the changelog as unconfirmed.
+
 ## What this is
 
 The personal portfolio and publishing site for Nathan Haslewood, at nathanhaslewood.com.au. It is a hand written static site. It also hosts the full text of one book and excerpts from another.
@@ -87,10 +89,26 @@ Every page is a directory with an `index.html`. URLs keep trailing slashes.
 
 This repo contains the full text of SMSF Property Investing and excerpts from Build, Stabilise, Leverage. **Do not add a LICENSE file.** With none, the default is all rights reserved, which is intended.
 
+## Review, scaled to risk
+
+Adversarial review has earned its place on this project. It has caught defects that ordinary testing missed: 24 on the lens, an attract animation playing unreachable behind the nav panel, a cross-origin iframe painting opaque white from an inherited colour scheme, and a 4.11:1 contrast failure that a coarse sweep stepped over.
+
+It is not required for every change. Match it to what can break.
+
+- **Copy, a single string, one CSS value:** no review. Verify the change itself and the four standards on affected pages only.
+- **One component or one page:** one review pass. Do not re-run it after actioning findings unless a fix touched something outside the original scope.
+- **New interaction, new JavaScript, anything sitewide, or anything touching the lens, the shell or the particle field:** full review.
+
+Re-verify what the change touched, not everything, unless the change was sitewide.
+
+**Stopping rule.** If verification and review together exceed roughly two hours on one version, stop and commit what is verified. Record the rest as unconfirmed. The failure mode to avoid is a loop with no exit: a review finds something, the fix invalidates the verification, everything is re-run, the review runs again. That loop does not terminate on its own and has already cost this project nine hours and an uncommitted tree.
+
+Judgement over completeness. A verification set that never finishes protects nothing.
+
 ## Verifying work
 
 This site has repeatedly shipped changes that were technically correct and visually invisible. Measure, do not assume:
 
 - Serve locally with `python3 -m http.server 8000`. Links are root absolute, so opening files directly will not work.
-- For visual or animation changes, check the rendered result at both 390px and 1280px before pushing.
+- For visual or animation changes, check the rendered result at 390px, 860px and 1280px before pushing. Two widths is not enough: v1.26.0 shipped a layout bug visible only between roughly 670px and 860px that both 390 and 1280 missed.
 - For animation, confirm it is visible while the element is on screen, not just that the CSS is attached.
