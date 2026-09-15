@@ -1,11 +1,19 @@
-/* nathanhaslewood.com.au · design system v1.2
+/* nathanhaslewood.com.au · design system v1.3
    Type: Instrument Sans, one family for everything a person reads · JetBrains Mono (machine layer)
-   Palette: paper, ink, and the three readers: orange (people) · cobalt (Google) · green (AI) */
+   Palette: paper, ink, and the three readers: orange (people) · cobalt (Google) · green (AI)
+   Ink on paper is three tiers, and from v1.32 all three are tokens. Measured on --paper:
+   --ink 17.58:1, --ink-2 7.33:1, --ink-3 4.89:1, each about 1.5 times quieter than the one
+   above it. --line at 1.25:1 is a rule, never text. On the three dark grounds --ink-3 tracks
+   --ink-2 rather than taking its own value, because there the darker grey is the worse one and
+   the tier has nowhere to go: see the note on body.arcade main. */
 
 :root{
   --paper:#FBFAF6;
   --ink:#171410;
   --ink-2:#57534A;
+  --ink-3:#756D5F;   /* the quiet tier: 4.89:1 on --paper, 5.11:1 on a white card. Was an
+                        untokenised #8a8272 on ten rules until v1.32, which is 3.64:1 and
+                        under the floor on 139 text nodes across 19 documents. */
   --line:#E6E1D6;
   --panel:#131109;
   --panel-2:#26221A;
@@ -258,19 +266,14 @@ body.home main .frame{
 .panel-person .quicklinks{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.15rem}
 
 .kv{display:grid;grid-template-columns:190px 1fr;gap:.5rem 1.4rem;font-size:.93rem;margin:0}
-/* v1.31: 3.81:1 on the overlay card's white, under the floor, and it had been since the
-   overlay shipped. #756d5f is the same hue darkened by 21, 21 and 19 of the three channels, and
-   reads 5.11:1 on the card's white. That white is hardcoded #fff with no dark variant, and the
-   ground resolved under the terms is rgb(255,255,255) on every page that builds the overlay. On
-   the site's paper, #FBFAF6, which is what the card's head strip takes, the same grey is 4.89:1,
-   so it would clear the floor there too. The overlay also paints a dark scrim behind the card,
-   but no .kv ever sits on it.
-   The overlay is the only thing on the site that builds a .kv, so nothing else moves, and nothing
-   else moving is the limit of this fix rather than the end of the problem: #8a8272 is still the
-   declared colour of ten other rules, and 139 text nodes across 19 documents read 3.64:1 on paper
-   or 3.81:1 on white at 11.2 to 12.8px. That is recorded in README.md and deliberately not
-   changed here, because this version is not allowed to alter any page's appearance. */
-.kv dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:#756d5f;padding-top:.15em}
+/* v1.31 took these terms from 3.81:1 to 5.11:1, which they had failed at since the overlay
+   shipped, and wrote the new value in as a literal because it was the only rule allowed to move.
+   v1.32 makes it --ink-3 along with the ten other rules that had the failing grey, so there is one
+   quiet tier on this site rather than two greys a step apart. The card's white is hardcoded #fff
+   with no dark variant, and the ground resolved under the terms is rgb(255,255,255) on every page
+   that builds the overlay, so 5.11:1 is the figure that governs here. The overlay also paints a
+   dark scrim behind the card, but no .kv ever sits on it. */
+.kv dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);padding-top:.15em}
 .kv dd{margin:0}
 .kv dd.check{color:var(--ok);font-weight:600}
 .kv .outline{font-family:var(--mono);font-size:.79rem;line-height:1.75;color:var(--ink-2)}
@@ -453,13 +456,13 @@ path.d-arrow{stroke:var(--index);stroke-width:1.4;fill:none;marker-end:url(#arr)
 .sampler{display:grid;grid-template-columns:250px 1fr;gap:1.6rem;margin:2rem 0;position:relative;z-index:1}
 .sampler-nav{display:flex;flex-direction:column;gap:.3rem;position:sticky;top:88px;align-self:start;max-height:70vh;overflow:auto}
 .sampler-nav button{appearance:none;text-align:left;background:none;border:1px solid transparent;border-radius:10px;padding:.5rem .7rem;font-family:var(--mono);font-size:.74rem;color:var(--ink-2);cursor:pointer;display:flex;gap:.6em;align-items:baseline;transition:background .15s,color .15s,border-color .15s}
-.sampler-nav button .num{color:#8a8272;min-width:2ch}
+.sampler-nav button .num{color:var(--ink-3);min-width:2ch}
 .sampler-nav button:hover{background:#fff;color:var(--ink);border-color:var(--line)}
 .sampler-nav button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .sampler-nav button.on .num{color:var(--ink)}
 .sampler-stage{border:1px solid var(--line);border-radius:16px;background:#fff;padding:2rem 2.2rem;min-height:460px;display:flex;flex-direction:column;position:relative;overflow:hidden}
 .sampler-stage::before{content:"";position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--signal-b),var(--index-b),var(--ok-b))}
-.spage .from{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#8a8272;margin:0 0 1rem}
+.spage .from{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 1rem}
 .spage h3{font-family:var(--serif);font-weight:600;font-size:1.5rem;margin:0 0 1rem;letter-spacing:-.012em}
 .spage p{margin:0 0 1em;max-width:62ch}
 .spage ul{padding-left:1.2em;margin:0 0 1em;max-width:62ch}
@@ -482,7 +485,7 @@ path.d-arrow{stroke:var(--index);stroke-width:1.4;fill:none;marker-end:url(#arr)
 /* timeline */
 .timeline{list-style:none;padding:0;margin:2rem 0;border-top:1px solid var(--line)}
 .timeline li{display:grid;grid-template-columns:92px 1fr;gap:1.6rem;padding:.9rem 0;border-bottom:1px solid var(--line);font-size:.95rem;line-height:1.6}
-.timeline .y{font-family:var(--mono);font-size:.8rem;color:#8a8272;padding-top:.15em}
+.timeline .y{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);padding-top:.15em}
 .timeline p{margin:0}
 
 /* reader pill + overlay (interior pages) */
@@ -567,17 +570,17 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 /* ---------- v1.4: the free book at /super/ ---------- */
 .prose table{width:100%;border-collapse:collapse;margin:1.8rem 0;font-size:.92rem;line-height:1.55}
 .prose th,.prose td{border:1px solid var(--line);padding:.55rem .75rem;text-align:left;vertical-align:top}
-.prose th{font-family:var(--mono);font-weight:500;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:#8a8272}
+.prose th{font-family:var(--mono);font-weight:500;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
 .prose .callout,.callout{border:1px solid var(--line);border-left:3px solid #c9c2b2;border-radius:12px;padding:1.15rem 1.35rem;margin:1.9rem 0;background:#fff}
-.callout>p:first-child{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8a8272;margin:0 0 .6rem}
+.callout>p:first-child{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .6rem}
 .callout>p:first-child strong{font-weight:500}
 .callout p{margin:.5rem 0}
 .callout ul{margin:.5rem 0 .5rem 1.1rem}
 .epigraph{margin:0 0 1.8rem;padding-left:1rem;border-left:3px solid var(--line);color:#5c5648;font-size:1.04rem}
-.tagline{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:#8a8272;margin:2.4rem 0 0}
+.tagline{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:2.4rem 0 0}
 .chapnav{display:flex;justify-content:space-between;gap:1.2rem;margin:3rem 0 0;padding-top:1.5rem;border-top:1px solid var(--line);font-size:.95rem}
 .chapnav a{text-decoration:none;border-bottom:1px solid var(--line)}
-.disclaimer-strip{font-family:var(--mono);font-size:.7rem;color:#8a8272;line-height:1.8;margin:2.4rem 0 0;padding-top:1.2rem;border-top:1px solid var(--line)}
+.disclaimer-strip{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);line-height:1.8;margin:2.4rem 0 0;padding-top:1.2rem;border-top:1px solid var(--line)}
 .dl-row{display:flex;gap:.7rem;flex-wrap:wrap;margin:0 0 2.4rem}
 .dl-btn{display:inline-block;font-size:.92rem;font-weight:600;text-decoration:none;padding:.7rem 1.15rem;border-radius:10px;background:var(--ink);color:var(--paper);border:1px solid var(--ink)}
 .dl-btn.alt{background:transparent;color:var(--ink)}
@@ -585,16 +588,16 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 .super-toc{list-style:none;padding:0;margin:1.4rem 0 2.4rem}
 .super-toc li{display:flex;gap:1.1rem;align-items:baseline;border-top:1px solid var(--line);padding:.75rem 0}
 .super-toc li:last-child{border-bottom:1px solid var(--line)}
-.super-toc .n{font-family:var(--mono);font-size:.72rem;color:#8a8272;min-width:2.4rem}
+.super-toc .n{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);min-width:2.4rem}
 .super-toc a{font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
-.toc-part{font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8a8272;margin:2.2rem 0 0}
+.toc-part{font-family:var(--mono);font-weight:500;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:2.2rem 0 0}
 .toc-part+.super-toc{margin-top:.7rem}
 
 /* ---------- v1.5: testimonials ---------- */
 .quotes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem;margin-top:1.8rem}
 .quote{border:1px solid var(--line);border-radius:14px;padding:1.4rem 1.5rem;margin:0;background:#fff}
 .quote blockquote{margin:0;font-size:.98rem;line-height:1.66;color:var(--ink)}
-.quote figcaption{margin-top:.95rem;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#8a8272}
+.quote figcaption{margin-top:.95rem;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
 .quote.solo{max-width:46rem;margin:0 auto}
 @media (max-width:760px){.quotes{grid-template-columns:1fr}}
 
@@ -1222,6 +1225,15 @@ body.arcade main{
   --paper:#04070e;
   --ink:#e8eef6;
   --ink-2:#9fb3c8;
+  /* The quiet tier follows the ground. --ink-3's light value is 3.47:1 here, measured worst
+     pixel under the glyphs, where the grey it replaces was 4.65:1: on a near black page the
+     darker grey is the WORSE one, and the brief's blanket substitution would have shipped a new
+     failure to fix an old one. There is no room for a real third tier on these grounds either.
+     --ink-2 is already the dim value, and a step 1.5 times quieter than it lands at 4.28:1, so
+     the quietest passing third tier available is only 1.30 times down rather than 1.50 and would
+     cost a new palette entry for one element on one page. It tracks --ink-2 instead, which reads
+     6.42:1 on --panel, 6.03:1 on the homepage at rest and 9.36:1 at the arcade end. */
+  --ink-3:var(--ink-2);
   --line:rgba(120,160,195,.20);
   --ok:#5fe08a;
   background:#04070e;
@@ -1710,6 +1722,7 @@ body.home .hero .wrap{position:relative;z-index:1}
 body.home main{
   --ink:color-mix(in srgb,#EFEBE2 calc((1 - var(--gp)) * 100%),#e8eef6);
   --ink-2:color-mix(in srgb,#9C968A calc((1 - var(--gp)) * 100%),#9fb3c8);
+  --ink-3:var(--ink-2);   /* see the note on body.arcade main: the light --ink-3 is 3.47:1 here */
   --line:color-mix(in srgb,#26221A calc((1 - var(--gp)) * 100%),rgba(120,160,195,.20));
   --paper:color-mix(in srgb,#131109 calc((1 - var(--gp)) * 100%),#04070e);
   --ok:color-mix(in srgb,#1FB878 calc((1 - var(--gp)) * 100%),#5fe08a);
@@ -2237,6 +2250,7 @@ body.dark main{
   --paper:var(--panel);
   --ink:var(--panel-ink);
   --ink-2:var(--panel-dim);
+  --ink-3:var(--ink-2);   /* see the note on body.arcade main */
   --line:var(--panel-2);
   background:var(--panel);
   color:var(--ink);
