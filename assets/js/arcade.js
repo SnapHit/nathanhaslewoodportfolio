@@ -13,7 +13,17 @@
    real game; what you lose is the demo playing in the screen.
 
    Nothing loads until it is asked for. Three live canvases on one page would
-   cook a phone, and Drift Fever alone is 1.5MB. */
+   cook a phone, and Drift Fever alone is 1.5MB.
+
+   From v1.33 this file drives /puzzles/ as well, which frames three light web
+   apps rather than three canvas games. That page marks each frame data-sh-auto,
+   which changes three things and nothing else: the frame loads on arrival rather
+   than on a tap, loading one does not park the others, and a frame that scrolled
+   away comes back by itself instead of waiting for a second tap. Everything about
+   the unloading is shared, because unloading twice in two files is how the two
+   copies drift apart. The cabinet parts are optional now: a page with no
+   .sh-attract and no .sh-grow gets neither, which is what lets /puzzles/ leave out
+   the expand state. */
 (function () {
   "use strict";
 
@@ -33,6 +43,7 @@
      answer. Both the first tap and the tap that revives an unloaded cabinet come
      through here, because both of them are a wait. */
   function holdUntilLoaded(f, card) {
+    if (!card) return;                 /* autoloaded frames have no card to hold up */
     var timer = setTimeout(drop, 20000);
     function drop() { clearTimeout(timer); if (card.parentNode) card.remove(); }
     f.addEventListener('load', drop, { once: true });
@@ -53,10 +64,16 @@
   function start(rec, card) {
     if (rec.screen.querySelector('iframe')) return;
 
-    /* One game at a time. The studio site leans on its cabinets being a screen
-       apart, but this page is denser, so anything else still running is parked
-       first: a phone is never left running two games at once. */
-    for (var i = 0; i < frames.length; i++) if (frames[i] !== rec) park(frames[i]);
+    /* One game at a time, on the cabinets. The studio site leans on its cabinets
+       being a screen apart, but that page is denser, so anything else still running
+       is parked first: a phone is never left running two games at once.
+       Autoloaded frames are exempt, and the reason is what they are. A canvas game
+       runs a loop forever; a daily puzzle is a light document sitting still once it
+       has rendered. Three of those coexist, and parking a sibling on load would
+       unload the very frames this mode exists to bring up. */
+    if (!rec.auto) {
+      for (var i = 0; i < frames.length; i++) if (frames[i] !== rec) park(frames[i]);
+    }
 
     var f = document.createElement('iframe');
     f.src = rec.src;
@@ -77,16 +94,21 @@
       name: cab.dataset.name,
       out: cab.dataset.out,
       host: cab.dataset.host,
+      auto: cab.hasAttribute('data-sh-auto'),
       screen: cab.querySelector('.sh-screen'),
       phone: cab.querySelector('.sh-phone'),
       el: null
     };
     frames.push(rec);
 
+    /* Both are optional from v1.33. /puzzles/ ships neither: it has nothing to tap
+       because its frames load themselves, and it leaves out the expand state
+       deliberately rather than carrying .sh-big's containing block risk. */
     var card = cab.querySelector('.sh-attract');
-    card.addEventListener('click', function () { start(rec, card); });
+    if (card) card.addEventListener('click', function () { start(rec, card); });
 
-    cab.querySelector('.sh-grow').addEventListener('click', function () { zoom(rec); });
+    var grow = cab.querySelector('.sh-grow');
+    if (grow) grow.addEventListener('click', function () { zoom(rec); });
   });
 
   /* ---------------- unloading whatever scrolled away ---------------- */
@@ -102,6 +124,19 @@
     : null;
 
   function watch(el) { if (io) io.observe(el); }
+
+  /* An autoloaded frame is observed through its own screen, which exists from the
+     first parse, rather than through an iframe that does not exist yet. That is what
+     lets one rule cover both the first load and every revive after it, instead of an
+     eager pass that has to guess.
+     Guessing was tried and was wrong twice. Starting all three inside the loop above
+     ran while var io was hoisted but still undefined, so watch() observed nothing and
+     no frame could ever unload again: measured, all three sat at -2475px and stayed
+     loaded. Starting all three here instead loaded and then immediately parked every
+     one of them, because at 390px no phone is within 120px of the viewport on arrival:
+     three requests opened and cancelled to show nothing. The observer already knows
+     which is true, so it is asked rather than second guessed. */
+  for (var a = 0; a < frames.length; a++) if (frames[a].auto) watch(frames[a].screen);
 
   /* The observer is only a nudge. A record says what changed at the moment it was
      queued, which is not what is true by the time it is delivered: a cabinet that
@@ -127,7 +162,24 @@
         sweepQueued = false;
         for (var i = 0; i < frames.length; i++) {
           var rec = frames[i];
-          if (rec.el && offScreen(rec.el)) park(rec);
+          /* An autoloaded record is judged on its screen before it has a frame, and on
+             its frame once it has one. A cabinet is judged only once it has a frame,
+             because until somebody taps it there is nothing to unload. */
+          var box = rec.el || (rec.auto ? rec.screen : null);
+          if (!box) continue;
+          if (offScreen(box)) { if (rec.el) park(rec); continue; }
+          if (!rec.auto) continue;
+          /* On screen, and autoloaded. Only these revive by themselves: a cabinet that
+             scrolled away put a card back and is waiting to be asked again, which is the
+             whole of its attract loop. A puzzle has no card and nothing to ask, so
+             arriving at it has to be enough. Both branches are guarded on there being no
+             src, so a frame that is merely on screen is never reloaded and never loses
+             its state to a scroll. */
+          if (!rec.el) { start(rec, null); continue; }
+          if (!rec.el.getAttribute('src')) {
+            rec.el.src = rec.src;
+            rec.phone.classList.add('sh-live');
+          }
         }
       });
     });
@@ -141,6 +193,7 @@
     if (!rec.el || !rec.el.getAttribute('src')) return;  // already unloaded
     if (rec.phone === zoomed) return;                    // the run the player is in
     rec.el.removeAttribute('src');                       // stop the loop dead
+    if (rec.auto) { rec.phone.classList.remove('sh-live'); return; }
     var again = attractCard(rec.name);
     again.addEventListener('click', function () {
       rec.el.src = rec.src;

@@ -1130,6 +1130,45 @@ body.sh-zoomed .sh-bail{display:inline-flex}
   .sh-attract:hover .sh-play,.sh-attract:focus-visible .sh-play{transform:none}
 }
 
+/* ---------- /puzzles/ ----------
+   Three daily puzzles in phones, on the site's own dark ground rather than the
+   arcade's. The phone component is reused whole from the cabinets. What is left out
+   is the cabinet around it, and the expand state with it: .sh-phone.sh-big is
+   position:fixed inside the shell, and a transformed shell becomes its containing
+   block, measured at 359 by 5107px at left -303 when reached from inside the open
+   burger. This page has no reason to carry that, so it ships no .sh-grow and
+   arcade.js wires none.
+
+   The two arcade glows are dropped here and only here. The phone's cyan halo and the
+   visit pill's amber exist so neon reads as light in darkness on /games/. There is no
+   neon on this page, so the halo would be a stray blue ring on a warm ground and the
+   pill would import the arcade's identity into a page that is not the arcade. The
+   phone's rails, keys, island, glass and home bar are untouched, and /games/ keeps
+   both glows because these rules are keyed to .pz-stage and .pz-visit. */
+.pz-rack{display:flex;flex-direction:column;align-items:center;gap:clamp(3.2rem,8vh,5.5rem);margin:0}
+.pz-item{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:32rem;width:100%}
+.pz-name{font-family:var(--serif);font-weight:600;font-size:clamp(1.35rem,2.4vw,1.75rem);
+  letter-spacing:-.012em;margin:0 0 .45rem}
+.pz-line{margin:0 0 1.5rem;color:var(--ink-2);font-size:.97rem;line-height:1.6;max-width:30rem}
+.pz-stage{display:flex;justify-content:center;width:100%}
+.pz-stage .sh-phone{box-shadow:
+  inset 0 0 0 1px rgba(255,255,255,.22),
+  0 0 0 1px rgba(4,8,14,.9),
+  0 14px 30px -12px rgba(0,0,0,.9)}
+.pz-visit{display:inline-flex;align-items:center;gap:.55rem;margin-top:1.4rem}
+.pz-visit svg{width:13px;height:13px;fill:currentColor}
+/* With JavaScript off there is no frame, so the screen says so and the button below
+   it is the way through. Sits in flow inside .sh-screen, under the island and glass. */
+.pz-noscript{margin:0;padding:14% 10% 0;color:#CFE2F5;font-size:.85rem;line-height:1.65;text-align:center}
+/* The framed documents are pinned back to light, for the reason recorded beside
+   body.arcade iframe near the top of this file: a cross origin child that declares no
+   scheme of its own inherits dark from the embedder, and Chrome then stops treating
+   its canvas as transparent and paints it opaque white. This page frames three such
+   documents and none of them is ours to rely on. Scoped to the screen rather than to a
+   new body class, because the token overrides this page depends on, --ink-3 among
+   them, are keyed to body.dark and a new class would miss them. */
+body.dark .sh-screen iframe{color-scheme:light}
+
 @media (prefers-reduced-motion:reduce){
   .hero-down{transition:none}
   .hero-down svg{animation:none}
