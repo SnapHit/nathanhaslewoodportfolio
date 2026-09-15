@@ -783,32 +783,40 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
 @media (max-width:700px){.nav-js .hero-game{height:calc(100dvh - 65px)}}
 .hero-game-frame{display:block;width:100%;height:100%;border:0;background:#04070e}
 
-/* Centred rather than tucked into the corner, because this is the primary way onward and a
-   corner pill reads as a footnote on somebody else's game.
-   Lifted 120px off the HERO's bottom edge, and the hero's bottom edge is 100dvh, so the lift is
-   measured against the dynamic viewport and holds whatever the browser chrome is doing. Both
-   readings, at 390 by 844: with the chrome collapsed the hero ends at y844 and the control's
-   lower edge lands at y724; with a 94px band expanded, 100dvh resolves to 750, the hero ends at
-   y750 and the lower edge lands at y630. Above the fold either way, because it is pinned to the
-   fold rather than to a fixed number. The v1.17 rule sat 16px off that edge and the gate pushed
-   it 14px further down, putting its TOP edge at y802 and its lower edge at y842, which is where
-   the invisible-and-below-the-fold reading came from.
+/* BOTTOM RIGHT since v1.37. v1.36 centred it and argued a corner pill reads as a footnote on
+   somebody else's game. That was right about the reading and wrong about the cost: centred and
+   120px off the foot, it sat squarely on SnapHit's slingshot, which is the game's primary control
+   and the thing a player most needs to see. Obscuring the game to advertise the page below it is
+   the worse trade, so the pill takes the corner and accepts reading as a footnote.
+   Anchored to the HERO's bottom right, and the hero's bottom edge is 100dvh, so the position is
+   measured against the dynamic viewport and holds whatever the browser chrome is doing. At 390 by
+   844 with the chrome collapsed the hero ends at y844 and the control's lower edge lands at y820;
+   with a 94px band expanded, 100dvh resolves to 750 and the lower edge lands at y726. Above the
+   fold either way, because it is pinned to the fold rather than to a fixed number.
+   The insets add the safe area rather than taking the larger of the two, because a home indicator
+   and a rounded display corner are additional to the margin the design wants, not a substitute
+   for it. 24px up and 16px in on a device with no inset; 58px up on a phone with a 34px indicator.
+   The game's own controls are top left (sound) and top right (reload), so the bottom right corner
+   is the one corner that was already free of them.
+   SMALLER than v1.36's 178 by 50, because a corner chip over a live play field should take the
+   least room that still says where it goes. The label is unchanged.
    OPAQUE, not the old 72 per cent wash. What sits behind it is a live cross origin game whose
    ground nobody here controls, and a translucent chip makes the label's legibility a function of
    whatever frame is showing. An opaque chip makes it a constant: #EFEBE2 on #0A0907 is 16.73:1
    whatever the ducks are doing. The backdrop blur went with the transparency, having nothing
    left to blur.
    No opacity or transform transition either. Both existed to animate the gate opening.
-   width:max-content is load bearing, not tidiness. An absolutely positioned box with left:50%
-   shrinks to fit the space left of the offset, so at a 320px viewport it had 160px to work in
-   and broke the label over two lines. max-content gives it its natural 178px, and the max-width
-   is the guard for a viewport narrower than the pill itself. */
-.hero-down{position:absolute;left:50%;transform:translateX(-50%);
-  bottom:max(120px,calc(env(safe-area-inset-bottom) + 120px));
-  display:inline-flex;align-items:center;gap:.6rem;
+   width:max-content stays. Right anchoring leaves the box far more room to shrink into than
+   left:50% did, so it is no longer the only thing stopping the label wrapping, but it still
+   guarantees the pill is its natural width at every viewport rather than the widest the corner
+   happens to allow. The max-width is the guard for a viewport narrower than the pill itself. */
+.hero-down{position:absolute;
+  right:calc(env(safe-area-inset-right, 0px) + 16px);
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 24px);
+  display:inline-flex;align-items:center;gap:.5rem;
   width:max-content;max-width:calc(100% - 2rem);
-  padding:.85rem 1.3rem;border-radius:999px;text-decoration:none;
-  font-family:var(--mono);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.7rem 1.05rem;border-radius:999px;text-decoration:none;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
   color:#EFEBE2;background:#0A0907;border:1px solid rgba(239,235,226,.55);
   box-shadow:0 10px 30px -10px rgba(0,0,0,.92);
   transition:background .2s ease,border-color .2s ease}
@@ -827,7 +835,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
    This is the job the deleted body.arcade .hero-skip rule used to do, moved to the control that
    took its place. */
 .hero-down:focus-visible{outline-offset:-6px}
-.hero-down svg{width:18px;height:11px;animation:hero-bob 1.9s ease-in-out infinite}
+.hero-down svg{width:16px;height:10px;animation:hero-bob 1.9s ease-in-out infinite}
 @keyframes hero-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 
 /* ---------- v1.18: SnapHit cabinets, ported from snap-hit.online ---------- */
