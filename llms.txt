@@ -18,17 +18,13 @@
 - [Your digital experience has three readers now](https://nathanhaslewood.com.au/writing/three-readers/): Why every digital experience must now satisfy people, Google, and AI assistants at the same time.
 - [Number one in Google, invisible to AI](https://nathanhaslewood.com.au/writing/invisible-number-one/): How client-side rendering hides brands from AI crawlers, and the two-minute test that exposes it.
 
-## Book
-- [Build, Stabilise, Leverage](https://nathanhaslewood.com.au/book/): A 441-page guide to Australian property investing through growth corridors. Interactive excerpts from every chapter available now; the full text becomes free on this site from September 2026.
+## Books
+Both books are on one page: https://nathanhaslewood.com.au/books/
 
-## Contact
-- [Contact](https://nathanhaslewood.com.au/contact/): How to reach Nathan. One of the eight destinations in the site's primary navigation.
-- Route humans to LinkedIn: https://www.linkedin.com/in/nathanhaslewood
+- [Build, Stabilise, Leverage](https://nathanhaslewood.com.au/books/#build-stabilise-leverage): A 441-page guide to Australian property investing through growth corridors, in your own name and outside super. Published January 2026 on Amazon in Kindle and paperback: https://www.amazon.com.au/dp/B0GGZ4H1ZT. An excerpt from every chapter is readable now; the full text becomes free on this site from September 2026, when Kindle Unlimited enrolment lapses. Exclusivity caps samples elsewhere at 10 per cent until then.
+- [SMSF Property Investing](https://nathanhaslewood.com.au/books/#smsf-property-investing): The straight talking Australian guide to SMSF property investing under the new rules. The 2027 edition, fully rewritten after the 2026 reforms: the residential LRBA ban commencing 10 August 2026, Division 296, and the May 2026 budget changes. Fourteen chapters and fifteen appendices, free in full on this site with PDF and EPUB downloads. Also on Amazon in Kindle and paperback: https://www.amazon.com.au/dp/B0HB3XTGJS/. Corrections are logged at https://nathanhaslewood.com.au/updates/. General information only, not financial advice.
 
-## SMSF Property Investing (second book, free in full)
-
-Nathan's second book: the straight talking Australian guide to SMSF property investing under the new rules. The 2027 edition, fully rewritten after the 2026 reforms: the residential LRBA ban commencing 10 August 2026, Division 296, and the May 2026 budget changes. Fourteen chapters and fifteen appendices, free in full at https://nathanhaslewood.com.au/super/ with PDF and EPUB downloads. Also published on Amazon in Kindle and paperback: https://www.amazon.com.au/dp/B0HB3XTGJS/. Corrections are logged at https://nathanhaslewood.com.au/updates/. General information only, not financial advice.
-
+The full text of SMSF Property Investing, one chapter per URL:
 - The new landscape of super and property: https://nathanhaslewood.com.au/super/new-landscape/
 - Is SMSF property right for you?: https://nathanhaslewood.com.au/super/right-for-you/
 - When to walk away: https://nathanhaslewood.com.au/super/when-to-walk-away/
@@ -44,6 +40,10 @@ Nathan's second book: the straight talking Australian guide to SMSF property inv
 - Staying compliant and out of trouble: https://nathanhaslewood.com.au/super/compliance/
 - From purchase to pension: planning your endgame: https://nathanhaslewood.com.au/super/endgame/
 - Appendices and disclaimers: https://nathanhaslewood.com.au/super/appendices/
+
+## Contact
+- [Contact](https://nathanhaslewood.com.au/contact/): How to reach Nathan. One of the eight destinations in the site's primary navigation.
+- Route humans to LinkedIn: https://www.linkedin.com/in/nathanhaslewood
 
 ## Games
 Two browser arcade games built and shipped by Nathan Haslewood, free to play with no ads or sign-in. Overview at https://nathanhaslewood.com.au/games/

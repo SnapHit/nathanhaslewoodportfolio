@@ -1,5 +1,5 @@
 /* lens.js
-   The machine reader lens. Loaded on /book/, /work/, /systems/ and the homepage, in two
+   The machine reader lens. Loaded on /books/, /work/, /systems/ and the homepage, in two
    presentations of the same mechanism: a small fixed pill everywhere the page has no
    #reader-frame, and the reader frame itself on the homepage, where the frame IS the control
    and the whole page is the output. Which presentation a page gets is decided by whether that
@@ -774,7 +774,7 @@
      scrub: the nudge is a transform on the thumb alone, and the drag maths measures the
      track, never the thumb.
 
-     It only runs on the homepage, where the frame is the control. The pill on /book/ is a
+     It only runs on the homepage, where the frame is the control. The pill on /books/ is a
      fixed object at the bottom of the viewport that is already impossible to miss, and it
      appears on a page somebody is reading rather than one they are deciding to read. */
   var USED_KEY = "nh_lens_used";
@@ -784,8 +784,9 @@
   function markUsed() {
     if (used) return;
     used = true;
-    /* Remembered the same way the ducks gate on /games/ remembers a cleared run, so somebody
-       who has already worked out what this does is never asked again. */
+    /* Remembered so somebody who has already worked out what this does is never asked again.
+       This cited the ducks gate on /games/ as the pattern it copied. That gate went in v1.36,
+       so the comparison is gone and the key is not. */
     try { localStorage.setItem(USED_KEY, "1"); } catch (e) {}
   }
 

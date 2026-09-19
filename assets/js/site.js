@@ -119,7 +119,7 @@ document.documentElement.classList.add("js");
      the pill sits bottom right and so does that page's own way onward. The reason survived the
      thing it was written about: the sentence here used to say the gate reveals that link, and the
      gate went in v1.36, but v1.37 moved the link into that corner for good, so the collision the
-     opt out prevents is now permanent rather than conditional. /book/, /work/ and /systems/ opt out because they carry the lens instead, which is
+     opt out prevents is now permanent rather than conditional. /books/, /work/ and /systems/ opt out because they carry the lens instead, which is
      the same idea done in place rather than in a modal, and two controls for one job in one
      corner is one too many. */
   if (!frame && !document.body.hasAttribute("data-no-reader-pill")) {
@@ -235,6 +235,7 @@ document.documentElement.classList.add("js");
     "/systems/": "Production AI, with the governance built in",
     "/games/": "SnapHit Studios. Three arcade games, playable here",
     "/puzzles/": "Novlr, Reel Haiku and Forgery, playable here",
+    "/books/": "Two Australian property books. One sampled, one free in full",
     "/book/": "Build, Stabilise, Leverage. Australian property, 441 pages",
     "/super/": "SMSF Property Investing. The whole book, free",
     "/about/": "Fifteen years across banking, government and defence",
