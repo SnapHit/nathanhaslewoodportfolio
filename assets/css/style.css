@@ -461,6 +461,20 @@ path.d-arrow{stroke:var(--index);stroke-width:1.4;fill:none;marker-end:url(#arr)
    .section-head h2, which is this site's existing name for a title at that level. */
 .bookhead{font-family:var(--serif);font-weight:600;font-size:clamp(1.55rem,2.6vw,2rem);
   line-height:1.1;letter-spacing:-.012em;margin:.2rem 0 .9rem}
+/* On /books/ each book's own sections sit one level below its title, so they are h3 where they
+   were h2 on the two pages they came from. .prose h3 is 1.06rem, which at 16.96px against 16.48px
+   body text is not a heading anybody can see. They get the .prose h2 treatment instead, which is
+   the size they had before the port, so .bookhead sits above them and the thirteen excerpt
+   headings inside the picker sit level with them, exactly the relationship /book/ had. Sizing
+   them between the two instead inverts it: at 1.3rem the excerpt titles are larger than the
+   heading that introduces them. */
+.booksec .prose h3{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:1.15;
+  letter-spacing:-.01em;margin:2.3em 0 .55em}
+/* The header is sticky, so an in page jump lands the target under it. Scoped to the three
+   fragment targets this version introduced, which llms.txt and the JSON-LD both cite, rather
+   than added to html: the rest of the site's anchors behave as they always have and changing
+   that is not this version's job. */
+#build-stabilise-leverage,#smsf-property-investing,#sampler{scroll-margin-top:80px}
 
 /* sampler */
 .sampler{display:grid;grid-template-columns:250px 1fr;gap:1.6rem;margin:2rem 0;position:relative;z-index:1}
@@ -469,7 +483,11 @@ path.d-arrow{stroke:var(--index);stroke-width:1.4;fill:none;marker-end:url(#arr)
 .sampler-nav button .num{color:var(--ink-3);min-width:2ch}
 .sampler-nav button:hover{background:#fff;color:var(--ink);border-color:var(--line)}
 .sampler-nav button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.sampler-nav button.on .num{color:var(--ink)}
+/* --ink on an --ink button is 1.00:1: the chapter number on the SELECTED row has been
+   invisible since the picker shipped, and porting it to /books/ carried that across. --paper at
+   62 per cent over the same ground reads 6.06:1, which keeps the number quieter than its label,
+   which was the intent, without erasing it. */
+.sampler-nav button.on .num{color:color-mix(in srgb,var(--paper) 62%,var(--ink))}
 .sampler-stage{border:1px solid var(--line);border-radius:16px;background:#fff;padding:2rem 2.2rem;min-height:460px;display:flex;flex-direction:column;position:relative;overflow:hidden}
 .sampler-stage::before{content:"";position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--signal-b),var(--index-b),var(--ok-b))}
 .spage .from{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 1rem}
