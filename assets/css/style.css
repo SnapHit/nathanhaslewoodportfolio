@@ -2216,7 +2216,16 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 
 /* The scroll lock. On the root element, so it is restored by removing one class and the scroll
    position is never written down and read back. */
-html.nav-open{overflow:hidden}
+/* The lock is on .nav-lift, not .nav-open, and that is the whole of the fix in v1.39.2.
+   .nav-lift goes on synchronously when the burger is tapped; .nav-open goes on two frames
+   later, so the rows have a state to transition from. setOrigin reads pageYOffset once and
+   the transform pivots on it for as long as the panel is open, so any scroll that lands
+   BETWEEN the reading and the lock is never accounted for. Measured on /about/ at 390px, with
+   the page still gliding when the burger was tapped: the origin was read at a scroll of 5600
+   and the page settled at 7629, and the sticky header, which lands at a constant y36.5 when
+   the two agree, painted at y-125.8, exactly 0.08 of the 2029px discrepancy. The burger went
+   with it, off the top of the screen. Locking first makes the reading final. */
+html.nav-lift{overflow:hidden}
 
 /* ---------- v1.25: the lens control, above the fold and hard to miss ---------- */
 /* The control that drives this whole page began 3px below the visible fold of a 390px phone,

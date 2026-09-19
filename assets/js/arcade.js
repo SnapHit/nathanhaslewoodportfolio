@@ -105,6 +105,7 @@
       scroll: cab.hasAttribute('data-sh-scroll'),
       screen: cab.querySelector('.sh-screen'),
       phone: cab.querySelector('.sh-phone'),
+      cab: cab,
       el: null
     };
     frames.push(rec);
@@ -232,11 +233,51 @@
      flight. The keyboard exit is Tab, which carries out of the frame and into the
      parent, and Escape while the parent holds focus. Escape is not bound inside
      the frame on purpose: the games already use it to pause. */
+  /* Everything that is not the game is set aside while the game is full screen, and inert is
+     the right tool because it takes an element out of the tab order AND out of the
+     accessibility tree without moving it or restyling it.
+
+     Not inert on .shell, which is the obvious move and the wrong one: the zoomed phone is
+     position:fixed INSIDE the shell, so inerting the shell inerts the game. inert has no
+     exemption and no way back down the tree. So the list is built from the parts that are
+     definitely not the game: the header, the footer, every direct child of main except the one
+     the zoomed cabinet sits in, and every other cabinet inside that one.
+
+     This is the other half of moving the two controls ahead of .shell in the markup. The move
+     puts the way out early in the tab order; this stops everything else being in it at all.
+     Measured before: twenty tab stops from the top of a full screen game reached the brand,
+     the hero frame, all three cabinets' controls, the studio card and six footer links, every
+     one of them behind an opaque game. */
+  var setAside = [];
+  /* Walked from body rather than listed, because a list is a guess about the markup and this
+     has to be true of the page as it is. At each level: anything that CONTAINS the zoomed phone
+     is descended into, anything that does not is set aside, and the two full screen controls are
+     exempt because they are the way out. What survives is the game, the close button and the
+     bail link, and nothing else.
+     A hand written list was tried first and left four stops behind: the zoomed cabinet's own
+     marquee, attract button and visit link, which are siblings of the phone rather than
+     ancestors of it, and the studio card, which shares a section with the rack. */
+  function standDown(node, keep, exempt) {
+    Array.prototype.forEach.call(node.children, function (n) {
+      if (n === keep || exempt.indexOf(n) !== -1) return;
+      if (n.contains(keep)) { standDown(n, keep, exempt); return; }
+      if (n.tagName === 'SCRIPT' || n.tagName === 'STYLE' || n.tagName === 'LINK') return;
+      if (n.inert) return;
+      n.inert = true;
+      setAside.push(n);
+    });
+  }
+  function standUp() {
+    setAside.forEach(function (n) { n.inert = false; });
+    setAside = [];
+  }
+
   function zoom(rec) {
     if (!shrinkBtn || !bailBtn) return;
     zoomed = rec.phone;
     rec.phone.classList.add('sh-big');
     document.body.classList.add('sh-zoomed');
+    standDown(document.body, rec.phone, [shrinkBtn, bailBtn]);
     /* Playing full screen is the moment somebody is most likely to want the real
        thing, so the way out lives here too. Opposite corner from the close button,
        and labelled with the destination, because a thumb going for close must not
@@ -250,6 +291,9 @@
     if (!zoomed) return;
     zoomed.classList.remove('sh-big');
     document.body.classList.remove('sh-zoomed');
+    /* Before the focus move below, not after: focusing inside a subtree that is still inert
+       does nothing, and the caller would be left with focus on the body. */
+    standUp();
     var g = zoomed.querySelector('.sh-grow');
     zoomed = null;
     if (g) g.focus();

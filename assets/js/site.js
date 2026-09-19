@@ -320,9 +320,14 @@ document.documentElement.classList.add("js");
     btn.setAttribute("aria-expanded", v ? "true" : "false");
     if (v) {
       if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+      /* The lock goes on BEFORE the reading, not after. html.nav-lift is overflow:hidden, so
+         once it is on, pageYOffset cannot move again and the one reading setOrigin takes stays
+         true for the whole open state. The other order let a page that was still gliding when
+         the burger was tapped settle somewhere else, leaving the transform pivoting on a point
+         the page had left. */
+      root.classList.add("nav-lift");
       setOrigin();
       panel.hidden = false;
-      root.classList.add("nav-lift");
       /* The page is set aside, so it is set aside for a screen reader too. Not inert and not
          aria-hidden on the shell, because the burger lives in the header inside it and inert
          has no exemption: hiding the shell would hide the only control that closes the panel.
@@ -414,6 +419,11 @@ document.documentElement.classList.add("js");
   /* The origin is a viewport reading, so it is retaken if the viewport itself changes under an
      open panel: a rotation, or the address bar collapsing. */
   addEventListener("resize", function () { if (open) setOrigin(); }, { passive: true });
+  /* And a guard for the scroll that gets through anyway. overflow:hidden on the root stops the
+     reader scrolling, and on iOS it does not always stop momentum already in flight. If the
+     page moves while the panel is open, the pivot is recomputed rather than left stale: the
+     page has already jumped by then, and this puts it back. */
+  addEventListener("scroll", function () { if (open) setOrigin(); }, { passive: true });
 
   /* Restored from the back forward cache with the panel open, which is what happens when a
      reader follows a row and then presses back. The scroll lock and the slid page would come
