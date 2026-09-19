@@ -213,7 +213,7 @@ document.documentElement.classList.add("js");
 
 (function(){if(location.protocol==='file:')return;var v=document.querySelector('.hero-media video');if(v&&window.matchMedia('(max-width:760px)').matches){var s=v.querySelector('source');if(s){s.src='/assets/img/gen-hero-loop-sm.mp4';v.load();}}})();
 
-/* ---------- v1.24: the mobile nav, collapsed into a burger below 700px ----------
+/* ---------- v1.24: the mobile nav, collapsed into a burger below 50em ----------
    Progressive enhancement, not a component. The markup ships the full visible nav, which is
    what a reader with JavaScript off gets, wrapped onto two rows exactly as it has been since
    v1.7. This builds the button and the panel, and only then adds the class that hides the nav,
@@ -431,10 +431,18 @@ document.documentElement.classList.add("js");
   addEventListener("pageshow", function (e) { if (e.persisted && open) setOpen(false); });
 
   /* Crossing back above the breakpoint with the panel open would leave the page translated and
-     the scroll locked with no button on screen to undo either. The query is the exact
-     complement of the stylesheet's own, so a fractional width between 700 and 701 cannot fall
-     through the gap between them. */
-  var wide = window.matchMedia("(max-width: 700px)");
+     the scroll locked with no button on screen to undo either. The query has to be the exact
+     complement of the stylesheet's own, so a fractional width either side cannot fall through
+     the gap between them.
+     It stopped being that in v1.39.1, which moved four media queries to 50em and left this one
+     at 700px. From 701 to 800px the burger was showing and this guard already thought the page
+     was above the breakpoint, so widening from there never fired it: measured at 760 to 1100
+     and at 768 to 1024, an ordinary iPad rotation, the panel stayed open, html kept
+     overflow:hidden, the wheel moved the page 0px and the burger was display:none, so a pointer
+     user had no way back at all. Escape still worked, so only a pointer user was stuck.
+     The lesson is the one CLAUDE.md already records about nav changes: a breakpoint is not one
+     rule, and the JavaScript that mirrors it is part of the set. */
+  var wide = window.matchMedia("(max-width: 50em)");
   function onWide(e) { if (!e.matches && open) setOpen(false); }
   if (wide.addEventListener) wide.addEventListener("change", onWide);
   else if (wide.addListener) wide.addListener(onWide);

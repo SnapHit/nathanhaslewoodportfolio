@@ -262,6 +262,11 @@
       if (n === keep || exempt.indexOf(n) !== -1) return;
       if (n.contains(keep)) { standDown(n, keep, exempt); return; }
       if (n.tagName === 'SCRIPT' || n.tagName === 'STYLE' || n.tagName === 'LINK') return;
+      /* inert is an HTMLElement property. Setting it on the sprite <svg> at the top of /games/
+         writes a plain expando and no attribute, which does nothing AND makes n.inert truthy,
+         so the guard below would skip that subtree on every later walk. It holds only <symbol>
+         definitions and is aria-hidden, so there is nothing in it to set aside. */
+      if (!(n instanceof HTMLElement)) return;
       if (n.inert) return;
       n.inert = true;
       setAside.push(n);

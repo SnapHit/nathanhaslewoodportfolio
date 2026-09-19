@@ -631,8 +631,9 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
 
 /* ---------- v1.7 mobile header, rebuilt in v1.24 as the burger fallback ---------- */
 /* This used to be the mobile header at 720px: the nav is allowed to wrap and the brand is
-   hidden to make room for it. It is now the NO JAVASCRIPT fallback, and it moved to 700px
-   because that is where the burger starts. The 700px to 720px band therefore changes, and
+   hidden to make room for it. It is now the NO JAVASCRIPT fallback, and it moved to where the
+   burger starts, which was 700px and is 50em from v1.39.1. The 700px to 720px band therefore
+   changed at the time, and
    measured rather than assumed: with nine items the nav did not actually wrap up there, so what
    that band had was a single 51px row with no wordmark. It gets the standard 65px header with
    the brand now, which is what the header has been from 721px up since v1.7. That band is the
@@ -816,11 +817,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
   background:#04070e;overflow:clip}
 @media (max-width:50em){.hero-game{height:calc(100dvh - 92px)}}
 /* 92px was the height of the wrapped mobile header this game used to sit under. From v1.24 the
-   header below 700px is the brand and a burger on one row, 65px like every other width, so the
-   old subtraction left a 27px band of ground under the game. The 721px to 760px band keeps 92px
-   because that is what it has had since v1.17 and this version is not the place to change the
-   game's size above the burger breakpoint; it is worth a look on its own, because the header
-   there has been one 65px row since v1.7 too. */
+   header below the burger breakpoint is the brand and a burger on one row, 65px like every
+   other width, so the .nav-js rule below subtracts 65 and this one is the JavaScript off case.
+   Both rules moved to 50em in v1.39.1 so they track the breakpoint rather than a fixed width.
+   92px is stale as a number and is recorded rather than chased: measured with JavaScript off,
+   the header is 91px below about 550px where the nav wraps to two rows, and 51px above it, so
+   from about 551px to 800px the hero falls 41px short of the fold and a strip of the next
+   section shows under it. A height that tracks the real header needs a second media query keyed
+   to where the nav wraps, which is font dependent and a new fragility. */
 @media (max-width:50em){.nav-js .hero-game{height:calc(100dvh - 65px)}}
 .hero-game-frame{display:block;width:100%;height:100%;border:0;background:#04070e}
 
