@@ -110,5 +110,6 @@ Judgement over completeness. A verification set that never finishes protects not
 This site has repeatedly shipped changes that were technically correct and visually invisible. Measure, do not assume:
 
 - Serve locally with `python3 -m http.server 8000`. Links are root absolute, so opening files directly will not work.
-- For visual or animation changes, check the rendered result at 390px, 860px and 1280px before pushing. Two widths is not enough: v1.26.0 shipped a layout bug visible only between roughly 670px and 860px that both 390 and 1280 missed.
+- For visual or animation changes, check the rendered result at 390px, 860px, 1280px and 844x390 before pushing. Two widths is not enough: v1.26.0 shipped a layout bug visible only between roughly 670px and 860px that both 390 and 1280 missed.
+- **Anything positioned against the bottom of the viewport must be checked in landscape.** A short viewport hits min-height floors that no portrait width reaches, and the element's anchor stops being the fold. v1.37.0 moved the /games/ hero control to the bottom right and three consecutive versions verified it at portrait widths only; v1.37.1 then measured it at 844x390 sitting at y417 in a 390px viewport, not one pixel of it on screen, because `min-height:420px` on `.hero-game` wins below about 485px of viewport height and the hero's foot runs off the bottom of the screen.
 - For animation, confirm it is visible while the element is on screen, not just that the CSS is attached.
