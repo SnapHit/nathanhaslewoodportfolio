@@ -236,8 +236,6 @@ document.documentElement.classList.add("js");
     "/games/": "SnapHit Studios. Three arcade games, playable here",
     "/puzzles/": "Novlr, Reel Haiku and Forgery, playable here",
     "/books/": "Two Australian property books. One sampled, one free in full",
-    "/book/": "Build, Stabilise, Leverage. Australian property, 441 pages",
-    "/super/": "SMSF Property Investing. The whole book, free",
     "/about/": "Fifteen years across banking, government and defence",
     "/are-you-ai/": "Written for the machines that read this site",
     "/contact/": "LinkedIn. Serious messages get an answer"
