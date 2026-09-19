@@ -645,10 +645,24 @@ footer.site .fine{grid-column:1/-1;border-top:1px solid var(--panel-2);padding-t
    overflow check cannot see this. Tightening the gap in the band buys back 8 gaps worth. The
    font is untouched: the nav is already .92rem and the header reads at that size everywhere
    else. */
-@media (min-width:701px) and (max-width:900px){
+/* v1.39.1: the breakpoint is 50em, not 700px, and it is in em on purpose. Swept in 2px steps
+   from 620 to 1600, the nav clipped "Contact" with no affordance from 702 to 730px with the web
+   font loaded, and from 702 to 776px with it blocked, which is what a reader sees during a FOUT
+   or behind a proxy that blocks fonts.gstatic.com. 50em is 800px at a default 16px root, which
+   clears the worse of those two by 22px.
+   THE PX PART IS THE SMALLER HALF OF THE PROBLEM. .top nav is sized in rem, so a reader who
+   raises their browser's default font size widens the nav without widening the viewport, and no
+   fixed px breakpoint can follow them. Measured at an 18px root the clip runs to 808px, and at
+   20px to 990px: a 760px or 800px breakpoint leaves both of those clipping. A media query in em
+   resolves against the browser's default font size rather than the page's, which is exactly the
+   preference that widens the nav, so the burger arrives at 900px for the 18px reader and 1000px
+   for the 20px one and the band never opens.
+   The gap tightening from v1.33.1 stays and is still load bearing: reverted, the clip runs to
+   776px at a 16px root even with the font loaded. Its bounds are in em for the same reason. */
+@media (min-width:50em) and (max-width:56.25em){
   .top nav{gap:.62rem}
 }
-@media (max-width:700px){
+@media (max-width:50em){
   .top .wrap{flex-wrap:wrap;height:auto;gap:.5rem 1rem;padding-top:.6rem;padding-bottom:.6rem;align-items:center}
   .top .brand{display:none}
   .top nav{flex-wrap:wrap;margin-left:0;overflow-x:visible;gap:.5rem 1.1rem;width:100%;row-gap:.55rem}
@@ -800,14 +814,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--index-b);outline-of
    class, no script and no gesture. */
 .hero-game{position:relative;width:100%;height:calc(100dvh - 56px);min-height:420px;
   background:#04070e;overflow:clip}
-@media (max-width:760px){.hero-game{height:calc(100dvh - 92px)}}
+@media (max-width:50em){.hero-game{height:calc(100dvh - 92px)}}
 /* 92px was the height of the wrapped mobile header this game used to sit under. From v1.24 the
    header below 700px is the brand and a burger on one row, 65px like every other width, so the
    old subtraction left a 27px band of ground under the game. The 721px to 760px band keeps 92px
    because that is what it has had since v1.17 and this version is not the place to change the
    game's size above the burger breakpoint; it is worth a look on its own, because the header
    there has been one 65px row since v1.7 too. */
-@media (max-width:700px){.nav-js .hero-game{height:calc(100dvh - 65px)}}
+@media (max-width:50em){.nav-js .hero-game{height:calc(100dvh - 65px)}}
 .hero-game-frame{display:block;width:100%;height:100%;border:0;background:#04070e}
 
 /* BOTTOM RIGHT since v1.37. v1.36 centred it and argued a corner pill reads as a footnote on
@@ -2082,7 +2096,7 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 .burger{display:none}
 .navpanel[hidden]{display:none}
 
-@media (max-width:700px){
+@media (max-width:50em){
   .nav-js .top .wrap{flex-wrap:nowrap;height:64px;gap:1rem;padding-top:0;padding-bottom:0}
   .nav-js .top .brand{display:block}          /* his name is back: the burger frees the room */
   .nav-js .top nav{display:none}
@@ -2194,7 +2208,7 @@ body.home main .lens-resp-in .lens-cap{color:var(--ok)}
 /* Reduced motion: the finished state, arrived at without moving. The page is still set aside,
    because that is what makes the reveal legible rather than a panel on top of the page, but it
    gets there with no transition, no depth and no stagger. */
-@media (max-width:700px) and (prefers-reduced-motion:reduce){
+@media (max-width:50em) and (prefers-reduced-motion:reduce){
   .nav-js .shell,.burger i,.burger i::before,.burger i::after,.np-row{transition:none}
   .nav-open .shell{transform:translateX(calc(var(--nav-peek) - 100%));box-shadow:none}
   .np-row{opacity:1;transform:none;transition-delay:0s}
